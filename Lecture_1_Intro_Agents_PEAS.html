@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 1 — Intro to AI · Agents · PEAS · Environments</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#0a0e1a,#0d1b2e);border-bottom:2px solid var(--accent);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(0,212,255,.12),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(255,107,53,.15);border:1px solid var(--accent2);color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,46px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--accent);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--accent);border-color:var(--accent);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  h4{font-family:'Syne',sans-serif;font-size:13px;color:var(--accent5);margin:14px 0 6px;font-weight:700;}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}
+  li strong{color:var(--text);}
+  .box{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);border-left:4px solid var(--accent);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.p{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2);border-left-color:var(--accent3);}
+  .box.g{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);border-left-color:var(--accent4);}
+  .box.o{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.2);border-left-color:var(--accent2);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(0,212,255,.1);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+  .peas-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0;}
+  .pc{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .pc .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.5px;margin-bottom:7px;font-weight:500;}
+  .pc .lbl.P{color:var(--accent);}
+  .pc .lbl.E{color:var(--accent2);}
+  .pc .lbl.A{color:var(--accent4);}
+  .pc .lbl.S{color:var(--accent5);}
+  .pc p{margin:0;font-size:13px;}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}
+  .tip p{margin:0;color:var(--hi);font-size:13px;}
+  .env-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0;}
+  .env{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:13px;}
+  .env .en{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:#fff;margin-bottom:5px;}
+  .env p{font-size:12.5px;margin:0;}
+  .tag{display:inline-block;font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:10px;border:1px solid;margin:1px;}
+  .tag.yes{color:var(--accent4);border-color:var(--accent4);background:rgba(16,185,129,.08);}
+  .tag.no{color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,.08);}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(0,212,255,.08);color:var(--accent);padding:2px 6px;border-radius:4px;font-size:12px;}
+  @media(max-width:580px){.peas-grid,.env-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">LECTURE 1 · AI FUNDAMENTALS</div>
+  <h1>Introduction to AI<br><span>Agents · PEAS · Environments</span></h1>
+  <p>// Turing Test · Agent Design · PEAS Framework · 7 Environment Types · Problem Formulation</p>
+</header>
+<nav>
+  <a href="#what">What is AI?</a>
+  <a href="#turing">Turing Test</a>
+  <a href="#4types">4 Types of AI</a>
+  <a href="#agent">Agent Design</a>
+  <a href="#peas">PEAS</a>
+  <a href="#env">Environments</a>
+  <a href="#pf">Problem Formulation</a>
+  <a href="#examples">PEAS Examples</a>
+</nav>
+<main>
+
+<!-- WHAT IS AI -->
+<section class="sec" id="what">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🤖</div>
+    <h2>What is Artificial Intelligence?</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>Definition:</strong> AI attempts to build <strong>intelligent entities</strong> — programs and machines that can creatively perceive, reason, and solve problems. Term coined by <strong>John McCarthy</strong> at Dartmouth College, 1956.</p></div>
+    <div class="box p"><p><strong>This course focus:</strong> Building <strong>rational agents</strong> — agents that always choose the action that maximises their expected outcome. Not "act human," but act <em>correctly</em>.</p></div>
+    <h3>AI vs ML vs Deep Learning</h3>
+    <table>
+      <tr><th>Term</th><th>What it means</th><th>Example</th></tr>
+      <tr><td><strong>Artificial Intelligence (AI)</strong></td><td>Build intelligent programs that creatively solve problems</td><td>Chess engine, self-driving car</td></tr>
+      <tr><td><strong>Machine Learning (ML)</strong></td><td>Systems that automatically learn and improve from data — without being explicitly reprogrammed</td><td>Netflix recommendations, spam filter</td></tr>
+      <tr><td><strong>Deep Learning (DL)</strong></td><td>ML using deep neural networks to learn from raw data</td><td>Image recognition, ChatGPT</td></tr>
+    </table>
+    <div class="tip"><span>💡</span><p><strong>Memory:</strong> AI ⊃ ML ⊃ DL. Every DL system is ML, every ML system is AI. But not every AI system uses DL.</p></div>
+    <h3>Brief AI Timeline (Know This!)</h3>
+    <table>
+      <tr><th>Year</th><th>Event</th></tr>
+      <tr><td>1956</td><td>Dartmouth Conference — John McCarthy coins "Artificial Intelligence"</td></tr>
+      <tr><td>1997</td><td>IBM Deep Blue defeats world chess champion Garry Kasparov</td></tr>
+      <tr><td>2002</td><td>Roomba robotic vacuum enters homes</td></tr>
+      <tr><td>2005</td><td>DARPA Grand Challenge — driverless car STANLEY wins desert race</td></tr>
+      <tr><td>2011</td><td>IBM Watson wins Jeopardy! against human champions</td></tr>
+      <tr><td>2016</td><td>AlphaGo beats human Go champion</td></tr>
+      <tr><td>2017–18</td><td>AlphaZero beats all at chess, Go, shogi through self-play alone</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- TURING TEST -->
+<section class="sec" id="turing">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🧪</div>
+    <h2>The Turing Test</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p><strong>Core idea:</strong> A computer passes the Turing Test if a human interrogator — asking written questions — <strong>cannot tell whether responses come from a human or a machine</strong>. Proposed by Alan Turing (1950).</p></div>
+    <div class="box o"><p><strong>From your handwritten notes:</strong> "How much does an AI agent's answer differ from a human?" — Example: <strong>CAPTCHA</strong> (Completely Automated Public Turing test to tell Computers and Humans Apart) is based on this idea.</p></div>
+    <h3>What Capabilities Does Passing the Turing Test Require?</h3>
+    <ul>
+      <li><strong>Natural Language Processing (NLP)</strong> — Understand and generate human language</li>
+      <li><strong>Knowledge Representation</strong> — Store and recall world knowledge</li>
+      <li><strong>Automated Reasoning</strong> — Use stored knowledge to draw conclusions</li>
+      <li><strong>Machine Learning</strong> — Adapt to new situations</li>
+      <li><strong>Computer Vision</strong> — Perceive visual input (for Total Turing Test)</li>
+      <li><strong>Robotics</strong> — Physically interact with the world (for Total Turing Test)</li>
+    </ul>
+    <div class="box g"><p><strong>Why AI researchers mostly ignore the Turing Test:</strong> It is not reproducible, not constructive, and cannot be mathematically analyzed. It is more important to study the <em>underlying principles</em> of intelligence than to mimic human behavior.</p></div>
+  </div>
+</section>
+
+<!-- 4 TYPES OF AI -->
+<section class="sec" id="4types">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">📊</div>
+    <h2>The 4 Views of AI — Most Exam Questions Come From Here!</h2>
+  </div>
+  <div class="bdy">
+    <div class="box p"><p>AI can be defined in 4 ways based on two axes: <strong>Thinking vs Acting</strong> and <strong>Human-like vs Rational</strong>.</p></div>
+    <div class="env-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="env" style="border-top:3px solid var(--accent)">
+        <div class="en">🧠 Thinking Humanly</div>
+        <p>AI that models and replicates how the human brain works. Studies cognitive science. Simulation of human thought processes including errors.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: AI that makes memory errors like humans do.</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent3)">
+        <div class="en">⚖️ Thinking Rationally</div>
+        <p>Uses formal logic / "laws of thought" to derive correct conclusions from premises. Inference-based reasoning.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: AI that solves a math theorem logically.</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent2)">
+        <div class="en">🎭 Acting Humanly</div>
+        <p>Produces behavior indistinguishable from a human. Passes the Turing Test. Mimics human behavior patterns.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Siri telling jokes, ChatGPT writing friendly tone, customer-service bot apologising politely.</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">🎯 Acting Rationally ⭐ THIS COURSE</div>
+        <p>Takes the best possible action to achieve a goal. Maximises expected utility. Does NOT need to mimic humans at all.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Self-driving car, Google Maps, Netflix recommendation.</p>
+      </div>
+    </div>
+    <h3>🔥 Classify These — Exam Favourite!</h3>
+    <table>
+      <tr><th>Example</th><th>Category</th><th>Why</th></tr>
+      <tr><td>Siri telling a joke</td><td style="color:var(--accent2)">Acting Humanly</td><td>Mimics human social behaviour</td></tr>
+      <tr><td>AI solving a math theorem logically</td><td style="color:var(--accent3)">Thinking Rationally</td><td>Uses formal logic</td></tr>
+      <tr><td>AI modelling human memory errors</td><td style="color:var(--accent)">Thinking Humanly</td><td>Simulates human cognitive errors</td></tr>
+      <tr><td>Self-driving car deciding when to stop</td><td style="color:var(--accent4)">Acting Rationally</td><td>Maximises safety outcome</td></tr>
+      <tr><td>ChatGPT writing in a friendly tone</td><td style="color:var(--accent2)">Acting Humanly</td><td>Mimics human writing style</td></tr>
+      <tr><td>Netflix recommending a movie</td><td style="color:var(--accent4)">Acting Rationally</td><td>Maximises engagement utility</td></tr>
+      <tr><td>Customer-service bot apologising politely</td><td style="color:var(--accent2)">Acting Humanly</td><td>Mimics polite human behaviour</td></tr>
+      <tr><td>Google Maps avoiding traffic</td><td style="color:var(--accent4)">Acting Rationally</td><td>Maximises route efficiency</td></tr>
+    </table>
+    <div class="tip"><span>🧠</span><p><strong>Key distinction:</strong> "Acting Humanly" = behaves like a human (friendly, emotional, makes jokes). "Acting Rationally" = achieves goal optimally (efficiency, correct decisions).</p></div>
+  </div>
+</section>
+
+<!-- AGENT DESIGN -->
+<section class="sec" id="agent">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">⚙️</div>
+    <h2>Basic Design of an Agent</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p><strong>An agent</strong> is anything that can be viewed as <strong>perceiving its environment through sensors</strong> and <strong>acting upon that environment through actuators</strong>. The agent processes percepts and takes actions.</p></div>
+    <div class="box g"><p><strong>From your notes:</strong> Actuator = module that shows output / takes action. Sensor = how input is taken.</p></div>
+    <h3>Types of Agents</h3>
+    <table>
+      <tr><th>Agent Type</th><th>Sensors (Input)</th><th>Actuators (Output)</th></tr>
+      <tr><td><strong>Human Agent</strong></td><td>Eyes, ears, skin, nose</td><td>Hands, legs, vocal tract, face</td></tr>
+      <tr><td><strong>Robotic Agent</strong></td><td>Cameras, IR sensors, GPS, microphone</td><td>Motors, wheels, robotic arms, speakers</td></tr>
+      <tr><td><strong>Software Agent</strong></td><td>Keystrokes, file contents, network packets</td><td>Display on screen, write files, send network packets</td></tr>
+    </table>
+    <div class="tip"><span>⚠️</span><p><strong>Common mix-up in your notes:</strong> You wrote "Actuator - eyes, ears / Sensor - hands, legs" — this is REVERSED! <strong>Sensors = input (eyes, ears)</strong> and <strong>Actuators = output (hands, legs, vocal tract)</strong>.</p></div>
+    <h3>Vacuum Cleaner Example (From Class)</h3>
+    <div class="box"><p>Two rooms A and B. The agent perceives: which room it's in + whether that room is dirty.</p></div>
+    <table>
+      <tr><th>Situation</th><th>Action</th></tr>
+      <tr><td>Currently in A, A is dirty</td><td>Suck → A becomes clean</td></tr>
+      <tr><td>Currently in A, A is clean</td><td>Move → go to B</td></tr>
+      <tr><td>Currently in B</td><td>Check if dirty → suck or not</td></tr>
+    </table>
+    <h3>The Concept of Rationality</h3>
+    <div class="box p"><p><strong>Rational agent</strong> = one that does the right thing — selects actions that <strong>maximise its expected utility</strong> (performance measure), given what it knows. Rationality is about results, not the process of thinking.</p></div>
+  </div>
+</section>
+
+<!-- PEAS -->
+<section class="sec" id="peas">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🎯</div>
+    <h2>PEAS Framework — How to Describe Any Agent</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>PEAS</strong> = the standard way to formally describe an AI agent. You will be asked to write PEAS descriptions in every exam. Master this!</p></div>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">P — PERFORMANCE MEASURE</div><p>How do we judge if the agent is doing a <strong>good job</strong>? What score does it get? What is it optimising?<br><em>Ask: "What should the agent achieve?"</em></p></div>
+      <div class="pc"><div class="lbl E">E — ENVIRONMENT</div><p>Where does the agent <strong>live and operate</strong>? What is around it? What world does it interact with?<br><em>Ask: "Where does the agent act?"</em></p></div>
+      <div class="pc"><div class="lbl A">A — ACTUATORS</div><p>What can the agent <strong>DO</strong>? Its output mechanisms — how does it take action on the world?<br><em>Ask: "What tools does it use to act?"</em></p></div>
+      <div class="pc"><div class="lbl S">S — SENSORS</div><p>What can the agent <strong>PERCEIVE</strong>? Its input mechanisms — how does it get information from the environment?<br><em>Ask: "How does it see/hear/feel the world?"</em></p></div>
+    </div>
+    <div class="tip"><span>💡</span><p><strong>Memory trick:</strong> "Please Explain Agent's Structure" = Performance, Environment, Actuators, Sensors</p></div>
+
+    <div class="divider"></div>
+    <h3>📦 Example 1: Rubik's Cube Solving Robot</h3>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">PERFORMANCE</div><p>Minimum number of moves to solve (optimal ≤ 20). Total time taken. Whether cube is fully solved.</p></div>
+      <div class="pc"><div class="lbl E">ENVIRONMENT</div><p>3×3 Rubik's cube. 4.3×10¹⁹ configurations. Physical holding fixture. 27 possible rotations per state.</p></div>
+      <div class="pc"><div class="lbl A">ACTUATORS</div><p>Robotic gripper arms. Servo motors to rotate each face. Can perform any of 27 rotations.</p></div>
+      <div class="pc"><div class="lbl S">SENSORS</div><p>Camera system (identifies colors). Color sensors on each face position. Position sensors on gripper.</p></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>⚽ Example 2: Robot Soccer Player (From Your Notes — Q from class!)</h3>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">PERFORMANCE</div><p>Goals scored. Goals conceded. Possession percentage. Wins per tournament. Energy efficiency.</p></div>
+      <div class="pc"><div class="lbl E">ENVIRONMENT</div><p>Soccer field. Football (ball). Other players (teammates & opponents). Goalposts. Referee.</p></div>
+      <div class="pc"><div class="lbl A">ACTUATORS</div><p>Motors (wheels or legs). Kicking mechanism. Turning/direction control. Communication system.</p></div>
+      <div class="pc"><div class="lbl S">SENSORS</div><p>Camera. Motion sensors. Distance/proximity sensors. GPS/field position sensor.</p></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>☕ Example 3: Coffee Making Robot (Q2 from Assignment)</h3>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">PERFORMANCE</div><p>Correct coffee type made as per command. Temperature accuracy. Time taken. User satisfaction.</p></div>
+      <div class="pc"><div class="lbl E">ENVIRONMENT</div><p>Kitchen. Coffee machine. Cups, milk, water, sugar, coffee beans. User giving voice commands.</p></div>
+      <div class="pc"><div class="lbl A">ACTUATORS</div><p>Robotic arms. Coffee machine controls. Grinder. Dispensers. Speaker (confirmation).</p></div>
+      <div class="pc"><div class="lbl S">SENSORS</div><p>Microphone (voice command). Camera. Weight/level sensors. Temperature sensor.</p></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>🏥 Example 4: Medical Diagnosis System (From Textbook Table)</h3>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">PERFORMANCE</div><p>Healthy patients. Reduced costs. Accurate diagnoses.</p></div>
+      <div class="pc"><div class="lbl E">ENVIRONMENT</div><p>Patient, hospital, medical staff.</p></div>
+      <div class="pc"><div class="lbl A">ACTUATORS</div><p>Display of questions, tests, diagnoses, treatments, referrals.</p></div>
+      <div class="pc"><div class="lbl S">SENSORS</div><p>Keyboard entry of symptoms, findings, patient's answers.</p></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>🚗 Example 5: Self-Driving Taxi</h3>
+    <div class="peas-grid">
+      <div class="pc"><div class="lbl P">PERFORMANCE</div><p>Safe delivery. Obeys traffic laws. Fast arrival. Maximise trips per hour. Passenger comfort.</p></div>
+      <div class="pc"><div class="lbl E">ENVIRONMENT</div><p>Roads, traffic, pedestrians, other vehicles, weather, traffic signals, customers.</p></div>
+      <div class="pc"><div class="lbl A">ACTUATORS</div><p>Steering wheel, accelerator, brake, horn, turn signals, display screen.</p></div>
+      <div class="pc"><div class="lbl S">SENSORS</div><p>Cameras, GPS, speedometer, LiDAR, radar, microphone, keyboard input.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ENVIRONMENT TYPES -->
+<section class="sec" id="env">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">🌍</div>
+    <h2>7 Environment Types — Exam MUST KNOW!</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p>Each environment type defines what kind of challenge the agent faces. You must be able to <strong>classify any given scenario</strong> using these 7 properties. From your handwritten notes!</p></div>
+
+    <h3>1. Fully Observable vs Partially Observable</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">✅ Fully Observable</div>
+        <p>Agent's sensors give access to the <strong>complete state of the environment</strong> at all times. Nothing is hidden.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Chess, crossword puzzle, Google Maps with full traffic data.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes example: Google self-driving car.</p>
+      </div>
+      <div class="env" style="border-top:3px solid #ef4444">
+        <div class="en">⚠️ Partially Observable</div>
+        <p>Agent can only perceive a <strong>partial area or subset</strong> of the environment. Some information is hidden.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Poker (can't see other players' cards), driving in fog, medical diagnosis.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "Partial Area — Not everything."</p>
+      </div>
+    </div>
+
+    <h3>2. Single Agent vs Multi-Agent</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">👤 Single Agent</div>
+        <p>Only <strong>one agent</strong> operates in the environment. No other decision-making entities.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: BayMax from Big Hero 6 — acts alone without help from others. Crossword puzzle solver.</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent2)">
+        <div class="en">👥 Multi-Agent</div>
+        <p>Multiple agents interact. Can be <strong>cooperative</strong> (helping each other) or <strong>competitive</strong> (opposing goals).</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Chess (competitive), soccer robots (cooperative), taxi fleet, stock trading.</p>
+      </div>
+    </div>
+
+    <h3>3. Deterministic vs Stochastic</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">🎯 Deterministic</div>
+        <p>Next state is <strong>completely determined</strong> by the current state and agent's action. No randomness.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: Apple Words game (fill in blank spaces). Chess moves are deterministic.</p>
+      </div>
+      <div class="env" style="border-top:3px solid #ef4444">
+        <div class="en">🎲 Stochastic</div>
+        <p>Outcomes are <strong>uncertain / random</strong>. Same action may produce different results.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Soccer board penalty, driving (other cars unpredictable), dice games.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "Doesn't tell exact result."</p>
+      </div>
+    </div>
+
+    <h3>4. Episodic vs Sequential</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">📸 Episodic</div>
+        <p>Each episode is <strong>independent</strong>. Current action does NOT affect future episodes. Agent just perceive + act.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Soccer match scoring (each match separate), spam filter, image classification.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "End one round."</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent2)">
+        <div class="en">📺 Sequential</div>
+        <p>Current decisions <strong>affect future decisions</strong>. Actions have long-term consequences. History matters.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Chess (each move affects all future moves), Game of Thrones character decisions, medical treatment plans.</p>
+      </div>
+    </div>
+
+    <h3>5. Static vs Dynamic</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">🧊 Static</div>
+        <p>Environment <strong>does NOT change</strong> while the agent is thinking/deliberating. World waits for agent.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Crossword puzzle, chess (technically semi-static with clock).</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "Still."</p>
+      </div>
+      <div class="env" style="border-top:3px solid #ef4444">
+        <div class="en">🌊 Dynamic</div>
+        <p>Environment <strong>changes while agent deliberates</strong>. Agent must respond to continuous changes.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Driving, stock trading, soccer (world changes every millisecond).</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "Not still."</p>
+      </div>
+    </div>
+
+    <h3>6. Discrete vs Continuous</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">🔢 Discrete</div>
+        <p>Finite number of <strong>distinct, clearly defined</strong> states/actions. Countable choices.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Chess (64 squares, finite pieces), card games.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes: "Option."</p>
+      </div>
+      <div class="env" style="border-top:3px solid var(--accent2)">
+        <div class="en">📈 Continuous</div>
+        <p>States and/or actions are defined over a <strong>continuous range</strong>. Infinite possible values.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Examples: Robot arm angle (27.3°), temperature (27°C — your notes), car steering angle.</p>
+        <p style="color:var(--muted);font-size:12px;">Your notes example: 27°C = continuous.</p>
+      </div>
+    </div>
+
+    <h3>7. Known vs Unknown</h3>
+    <div class="env-grid">
+      <div class="env" style="border-top:3px solid var(--accent4)">
+        <div class="en">📚 Known</div>
+        <p>The agent knows the <strong>rules / physics / outcomes</strong> of its actions in advance.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: Chess — you know exactly what each move does. Card game with known rules.</p>
+      </div>
+      <div class="env" style="border-top:3px solid #ef4444">
+        <div class="en">❓ Unknown</div>
+        <p>Agent must <strong>learn the effects</strong> of actions through experience. Rules not pre-known.</p>
+        <p style="margin-top:6px;color:var(--hi);font-size:12px;">Example: Exploring a new physical environment, playing an unknown card game for the first time.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>🏆 The Master Classification Table (From Your Notes!)</h3>
+    <table>
+      <tr><th>Task Environment</th><th>Observable</th><th>Agents</th><th>Deterministic</th><th>Episodic</th><th>Static</th><th>Discrete</th></tr>
+      <tr><td><strong>Crossword puzzle</strong></td><td>Fully</td><td>Single</td><td>Deterministic</td><td>Sequential</td><td>Static</td><td>Discrete</td></tr>
+      <tr><td><strong>Chess (with clock)</strong></td><td>Fully</td><td>Multi</td><td>Deterministic</td><td>Sequential</td><td>Semi</td><td>Discrete</td></tr>
+      <tr><td><strong>Poker</strong></td><td>Partially</td><td>Multi</td><td>Stochastic</td><td>Sequential</td><td>Static</td><td>Discrete</td></tr>
+      <tr><td><strong>Backgammon</strong></td><td>Fully</td><td>Multi</td><td>Stochastic</td><td>Sequential</td><td>Static</td><td>Discrete</td></tr>
+      <tr><td><strong>Taxi driving</strong></td><td>Partially</td><td>Multi</td><td>Stochastic</td><td>Sequential</td><td>Dynamic</td><td>Continuous</td></tr>
+      <tr><td><strong>Medical diagnosis</strong></td><td>Partially</td><td>Single</td><td>Stochastic</td><td>Sequential</td><td>Dynamic</td><td>Continuous</td></tr>
+      <tr><td><strong>Image analysis</strong></td><td>Fully</td><td>Single</td><td>Deterministic</td><td>Episodic</td><td>Semi</td><td>Continuous</td></tr>
+      <tr><td><strong>Part-picking robot</strong></td><td>Partially</td><td>Single</td><td>Stochastic</td><td>Episodic</td><td>Dynamic</td><td>Continuous</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- PROBLEM FORMULATION -->
+<section class="sec" id="pf">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">📐</div>
+    <h2>Problem Formulation — The 5 Components</h2>
+  </div>
+  <div class="bdy">
+    <div class="box p"><p><strong>Problem Formulation</strong> = a strategy/description defined before solving a problem using search. It's how we tell a computer what the problem is so it can search for a solution.</p></div>
+    <div class="box p"><p><strong>From your notes:</strong> "Problem strategy before solving a problem." It defines Start State, Actions, Transition, Goal Test, Path Cost.</p></div>
+    <table>
+      <tr><th>Component</th><th>What It Is</th><th>Example: 2D Grid Navigation</th></tr>
+      <tr><td><strong>State Representation</strong></td><td>How do we describe "where we are" in the problem?</td><td>Grid coordinates (i, j)</td></tr>
+      <tr><td><strong>Total # of States</strong></td><td>How many possible configurations exist?</td><td>All valid (i,j) grid positions</td></tr>
+      <tr><td><strong>Actions</strong></td><td>What moves can be made from any state?</td><td>Up and Right (from your notes: "up and right")</td></tr>
+      <tr><td><strong>Successor / Transition Function</strong></td><td>Given current state + action → what is the next state? (i,j) →<sup>up</sup> (i,j+1) | (i,j) →<sup>right</sup> (i+1,j)</td><td>Moving up increases j by 1; moving right increases i by 1</td></tr>
+      <tr><td><strong>Start State</strong></td><td>Where do we begin?</td><td>(0,0) — bottom-left</td></tr>
+      <tr><td><strong>Goal Test</strong></td><td>How do we know we've succeeded?</td><td>(i,j) == (2,2)? — reaching top-right</td></tr>
+      <tr><td><strong>Path Cost</strong></td><td>How expensive is the solution? What are we minimising?</td><td># of moves (number of steps taken)</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <h3>⏰ Time Machine Problem (From Midterm)</h3>
+    <div class="box y"><p>Okabe is in year <strong>2025</strong>, wants to reach year <strong>2000</strong> in at most <strong>4 jumps</strong>. Each jump can go to any year.</p></div>
+    <table>
+      <tr><td><strong>State</strong></td><td>(current_year, jumps_used) — tracks both position in time AND how many jumps used</td></tr>
+      <tr><td><strong>Start State</strong></td><td>(2025, 0)</td></tr>
+      <tr><td><strong>Actions</strong></td><td>Jump to any year y (any integer, past or future)</td></tr>
+      <tr><td><strong>Successor Function</strong></td><td>(year, j) → (y, j+1) for any year y, as long as j+1 ≤ 4</td></tr>
+      <tr><td><strong>Goal Test</strong></td><td>current_year == 2000 AND jumps_used ≤ 4</td></tr>
+      <tr><td><strong>Path Cost</strong></td><td>Number of jumps used (minimise this)</td></tr>
+    </table>
+    <div class="box g"><p>Example solution: 2025 → 2001 → 1997 → 2000 (3 jumps). Or simply: 2025 → 2000 (1 jump — optimal!)</p></div>
+
+    <div class="divider"></div>
+    <h3>🚁 Delivery Drone Problem</h3>
+    <table>
+      <tr><td><strong>State</strong></td><td>(drone_location, set_of_undelivered_packages)</td></tr>
+      <tr><td><strong>Start State</strong></td><td>(depot, all_packages_undelivered)</td></tr>
+      <tr><td><strong>Actions</strong></td><td>Fly to adjacent city node; Deliver package at current location</td></tr>
+      <tr><td><strong>Successor Function</strong></td><td>Move(v) → location becomes v; Deliver(p) → p removed from undelivered set</td></tr>
+      <tr><td><strong>Goal Test</strong></td><td>All packages delivered (undelivered set is empty)</td></tr>
+      <tr><td><strong>Path Cost</strong></td><td>Total distance + fuel consumed</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- PEAS Examples Table -->
+<section class="sec" id="examples">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">📋</div>
+    <h2>PEAS Quick Reference — All Exam Examples</h2>
+  </div>
+  <div class="bdy">
+    <table>
+      <tr><th>Agent</th><th>Performance</th><th>Environment</th><th>Actuators</th><th>Sensors</th></tr>
+      <tr><td><strong>Satellite Image Analysis</strong></td><td>Correct image categorization</td><td>Images from orbiting satellite</td><td>Display of scene categorization</td><td>Color pixel arrays</td></tr>
+      <tr><td><strong>Part-Picking Robot</strong></td><td>% of parts in correct bins</td><td>Conveyor belt with parts; bins</td><td>Jointed arm and hand</td><td>Camera, joint angle sensors</td></tr>
+      <tr><td><strong>Refinery Controller</strong></td><td>Purity, yield, safety</td><td>Refinery, operators</td><td>Valves, pumps, heaters, displays</td><td>Temperature, pressure, chemical sensors</td></tr>
+      <tr><td><strong>Interactive English Tutor</strong></td><td>Student's score on test</td><td>Set of students, testing agency</td><td>Display of exercises, suggestions, corrections</td><td>Keyboard entry</td></tr>
+    </table>
+    <div class="tip"><span>🏆</span><p><strong>Exam tip:</strong> For any PEAS question, follow this template → P: "How is the agent scored?", E: "Where does it work?", A: "What can it physically do?", S: "What data does it receive?" Never skip any component!</p></div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

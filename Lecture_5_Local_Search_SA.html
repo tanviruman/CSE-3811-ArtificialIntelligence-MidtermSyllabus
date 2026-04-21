@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 5 — Local Search · Hill Climbing · Simulated Annealing</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#0a0e1a,#0d1b2e);border-bottom:2px solid var(--accent2);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(255,107,53,.12),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(255,107,53,.15);border:1px solid var(--accent2);color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,46px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--accent2);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--accent2);border-color:var(--accent2);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent2);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}li strong{color:var(--text);}
+  .box{background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.2);border-left:4px solid var(--accent2);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.b{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.2);border-left-color:var(--accent);}
+  .box.g{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);border-left-color:var(--accent4);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box.p{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2);border-left-color:var(--accent3);}
+  .box.r{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);border-left-color:#ef4444;}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(255,107,53,.1);color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}.tip p{margin:0;color:var(--hi);font-size:13px;}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(255,107,53,.1);color:var(--accent2);padding:2px 6px;border-radius:4px;font-size:12px;}
+  .cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#e2e8f0;overflow-x:auto;line-height:1.8;}
+  .cb .c{color:#6b7280;}.cb .g{color:#86efac;}.cb .r{color:#fca5a5;}.cb .y{color:var(--accent5);}
+  .formula{background:#0d1117;border:1px solid var(--accent2);border-radius:8px;padding:14px 18px;margin:12px 0;font-family:'IBM Plex Mono',monospace;color:var(--accent2);font-size:15px;text-align:center;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .anb{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:16px 18px;margin:10px 0;}
+  .albl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent4);margin-bottom:8px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+  .card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .card h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:14px;margin-bottom:8px;}
+  .step-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;margin-bottom:10px;}
+  .sn{width:26px;height:26px;border-radius:50%;background:var(--accent2);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  @media(max-width:580px){.two{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">LECTURE 5 · LOCAL SEARCH</div>
+  <h1>Local Search<br><span>Hill Climbing · Simulated Annealing · Beam Search</span></h1>
+  <p>// State Landscape · Local Maxima · SA Formula · Full Exam Calculations · Summer 2024 · Fall 2024</p>
+</header>
+<nav>
+  <a href="#why">Why Local?</a>
+  <a href="#landscape">State Landscape</a>
+  <a href="#hillclimb">Hill Climbing</a>
+  <a href="#problems">HC Problems</a>
+  <a href="#sa">Simulated Annealing</a>
+  <a href="#sa-formula">SA Formula</a>
+  <a href="#beam">Beam Search</a>
+  <a href="#summer24">Summer 2024</a>
+  <a href="#fall24">Fall 2024</a>
+  <a href="#spring25">Spring 2025</a>
+</nav>
+<main>
+
+<!-- WHY LOCAL SEARCH -->
+<section class="sec" id="why">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🗺️</div>
+    <h2>Why Local Search? Classical vs Local</h2>
+  </div>
+  <div class="bdy">
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h4>Classical Search (A*, BFS, UCS)</h4>
+        <ul style="font-size:13px;color:var(--muted);padding-left:18px;">
+          <li>Keeps entire path in memory</li>
+          <li>Returns a path from start to goal</li>
+          <li>Systematic — explores the space</li>
+          <li>Memory hungry (O(bˢ) or worse)</li>
+          <li>The PATH is the solution</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h4>Local Search (HC, SA)</h4>
+        <ul style="font-size:13px;color:var(--muted);padding-left:18px;">
+          <li>Only current state in memory (constant!)</li>
+          <li>Moves to neighbours directly</li>
+          <li>NOT systematic — no path retained</li>
+          <li>Memory efficient — O(1) space</li>
+          <li>The GOAL STATE is the solution</li>
+        </ul>
+      </div>
+    </div>
+    <div class="box"><p><strong>When to use local search?</strong> When only the <strong>final solution matters</strong> — not HOW you got there. Examples: 8-queens (just need a valid queen placement), circuit layout, scheduling, protein folding.</p></div>
+    <div class="box b"><p><strong>From your notes (Class 7):</strong> "Local Search → Hill-climbing → Simulated Annealing." HC is for Maximisation (dark cloud). A*-Search is for Minimisation (light cloud).</p></div>
+  </div>
+</section>
+
+<!-- STATE SPACE LANDSCAPE -->
+<section class="sec" id="landscape">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">⛰️</div>
+    <h2>State-Space Landscape</h2>
+  </div>
+  <div class="bdy">
+    <div class="box p"><p>Imagine a <strong>hilly landscape</strong> where:</p></div>
+    <ul>
+      <li><strong>Position</strong> = a state (current configuration)</li>
+      <li><strong>Elevation</strong> = the value of the objective function / utility value</li>
+      <li><strong>Goal for maximisation</strong> = find the highest peak (global maximum)</li>
+      <li><strong>Goal for minimisation</strong> = find the lowest valley (global minimum)</li>
+    </ul>
+    <div class="box p"><p><strong>From your notes:</strong> "Highest value → Find করা" (find the highest value = target state). "Maximum value → পাওয়া" (get the maximum value).</p></div>
+    <h3>Three Problematic Terrain Features</h3>
+    <table>
+      <tr><th>Feature</th><th>What it is</th><th>Why it's a problem</th></tr>
+      <tr><td><strong>Local Maximum</strong></td><td>A peak that is higher than all its immediate neighbours, but NOT the global highest peak</td><td>Hill climbing gets stuck here — every move seems to go down, but the true optimal is elsewhere</td></tr>
+      <tr><td><strong>Ridge</strong></td><td>A sequence of local maxima forming a narrow elevated crest — like a mountain ridge</td><td>Agent can only move parallel to the ridge, never up it — acts like a series of local maxima</td></tr>
+      <tr><td><strong>Plateau (Plateaux)</strong></td><td>A flat area where all neighbours have the same value as current state</td><td>Hill climbing sees no improvement, so stops. Could be a flat local max OR a shoulder leading to better states</td></tr>
+    </table>
+    <div class="tip"><span>💡</span><p><strong>From your notes (Class 7):</strong> "Plateux → Local. Ridges." The diagram shows: global maximum (highest peak), local maximum (smaller peak), "flat" local maximum = plateau. Agent starts at target state (current state) at bottom and tries to climb up.</p></div>
+  </div>
+</section>
+
+<!-- HILL CLIMBING -->
+<section class="sec" id="hillclimb">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">🧗</div>
+    <h2>Hill Climbing Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>Core Idea:</strong> Continuously move in the direction of <strong>increasing value</strong> (uphill). Stop when no neighbour has a higher value. Like being blindfolded on a mountain — you can only feel which direction is uphill.</p></div>
+    <div class="box y"><p><strong>From your notes:</strong> "Greedy local search" because it always takes the best immediate step without thinking ahead. Does NOT maintain a search tree.</p></div>
+    <h3>Hill Climbing Algorithm</h3>
+    <div class="cb">
+<span class="c">// Steepest Ascent Hill Climbing (maximisation)</span>
+current = start_state
+
+loop:
+  neighbours = all_successors(current)
+  best_neighbour = max(neighbours, by objective_value)
+  
+  if value(best_neighbour) ≤ value(current):
+      return current  <span class="c">// stuck! no improvement possible</span>
+  
+  current = best_neighbour  <span class="c">// move uphill</span>
+    </div>
+    <h3>8-Queens Example</h3>
+    <div class="box y"><p>State: 8 queens on board, one per column. Successors: move any queen to any other square in same column → 8×7=56 successors. Heuristic h = number of attacking queen pairs (want to minimise this → h=0 is perfect). Hill climbing reduces h step by step until stuck.</p></div>
+    <p><strong>Performance:</strong> Gets stuck 86% of the time! Only solves 14% of random initial configurations. Takes about 4 steps when it succeeds, 3 when it fails.</p>
+  </div>
+</section>
+
+<!-- HC PROBLEMS -->
+<section class="sec" id="problems">
+  <div class="sec-hd" style="border-left:4px solid #ef4444">
+    <div class="ico" style="background:rgba(239,68,68,.1)">⚠️</div>
+    <h2>Hill Climbing Problems & Solutions</h2>
+  </div>
+  <div class="bdy">
+    <h3>Problem 1: Gets Stuck at Local Maxima</h3>
+    <div class="box r"><p>HC stops at any peak, even if it's not the global maximum. Every neighbour is lower, so HC thinks it's done — but it's just at a local maximum, not the best possible solution.</p></div>
+    <h3>Problem 2: Can't Navigate Ridges</h3>
+    <div class="box r"><p>A ridge has steep sides but a narrow top. Moving in any direction from a ridge-point goes downhill (except along the ridge). HC gets trapped and can't make progress.</p></div>
+    <h3>Problem 3: Gets Trapped on Plateaux</h3>
+    <div class="box r"><p>All neighbours equal the current value → HC sees no improvement → stops. Might be a flat local max (stuck forever) or a shoulder (could continue if it allowed sideways moves).</p></div>
+    <div class="divider"></div>
+    <h3>Solutions (Variants of Hill Climbing)</h3>
+    <table>
+      <tr><th>Variant</th><th>How It Works</th><th>Solves</th><th>Problem</th></tr>
+      <tr><td><strong>Sideways Moves</strong></td><td>Allow moving to a neighbour with EQUAL value (not just better). Stop after N consecutive sideways moves.</td><td>Plateaux (shoulders)</td><td>May loop forever without the limit N. 8-queens: success rises from 14% to 94%!</td></tr>
+      <tr><td><strong>Random Restart</strong></td><td>Run HC k times from different random starting points. Return the best result found.</td><td>Local maxima</td><td>Eventually finds global optimum with enough restarts. Each run is independent.</td></tr>
+      <tr><td><strong>Stochastic HC</strong></td><td>Instead of always taking the BEST uphill step, randomly choose an uphill step weighted by how much better it is.</td><td>Ridges</td><td>More exploration but slower convergence.</td></tr>
+      <tr><td><strong>Simulated Annealing</strong></td><td>Sometimes accepts downhill moves with a probability that decreases over time.</td><td>All of the above!</td><td>More complex — requires cooling schedule tuning.</td></tr>
+    </table>
+    <h3>Q4a from Assignment: Sideways Moves in 8-Queens</h3>
+    <div class="anb">
+      <div class="albl">▶ ANSWER</div>
+      <p>Allowing sideways moves means accepting moves to states with equal objective value (not strictly better). This helps escape plateaux (flat areas). Without sideways moves, HC solves 8-queens only 14% of the time. With sideways moves (capped at ~100), success rises to ~94%. The tradeoff: it's slower per successful run because of extra sideways exploration.</p>
+    </div>
+    <h3>Q4b: Local Beam Search vs Random Restart</h3>
+    <div class="anb">
+      <div class="albl">▶ KEY DIFFERENCE</div>
+      <div class="two">
+        <div class="card">
+          <h4>Random Restart (k runs)</h4>
+          <p>Run k completely <strong>independent</strong> HC searches from random starts. No information passes between runs. After all k, pick the best answer.</p>
+        </div>
+        <div class="card">
+          <h4>Local Beam Search (k states)</h4>
+          <p>Maintain k states simultaneously. At each step, generate ALL successors of all k states, keep best k. States <strong>communicate</strong> — promising states generate more offspring. Much more information sharing!</p>
+        </div>
+      </div>
+      <div class="box g"><p><strong>Key insight:</strong> Beam search is NOT k independent searches. If k=1, beam search = regular hill climbing. If k=∞, beam search = BFS!</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SA -->
+<section class="sec" id="sa">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🔥</div>
+    <h2>Simulated Annealing — The Escape Artist</h2>
+  </div>
+  <div class="bdy">
+    <div class="box b"><p><strong>Inspiration:</strong> Annealing in metallurgy — heat metal then cool slowly → atoms settle into low-energy crystalline structure. SA mimics this: start "hot" (accept many bad moves), gradually "cool" (accept fewer bad moves).</p></div>
+    <div class="box b"><p><strong>Core Idea:</strong> Like hill climbing, but occasionally accepts <strong>downhill (bad) moves</strong> with a probability that decreases as temperature T decreases. This allows escaping local optima!</p></div>
+    <h3>SA vs Hill Climbing</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent5)">
+        <h4>Hill Climbing</h4>
+        <p>✅ Always accept better moves</p>
+        <p>❌ Never accept worse moves</p>
+        <p>Result: Gets stuck at local optima</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h4>Simulated Annealing</h4>
+        <p>✅ Always accept better moves</p>
+        <p>⚡ Sometimes accept worse moves (probability depends on T)</p>
+        <p>Result: Can escape local optima!</p>
+      </div>
+    </div>
+    <div class="tip"><span>🧠</span><p><strong>From your notes (page 28):</strong> "Threshold 1 means all accepted. Threshold 0 means worst — all rejected. Basic Hill Climbing." When T=∞, prob=1 (all accepted). When T=0, prob=0 (none accepted, like HC).</p></div>
+  </div>
+</section>
+
+<!-- SA FORMULA -->
+<section class="sec" id="sa-formula">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">📐</div>
+    <h2>SA Formula — The Most Important Part!</h2>
+  </div>
+  <div class="bdy">
+    <h3>For MAXIMISATION Problems</h3>
+    <div class="box"><p>ΔE = E(neighbour) − E(current). If ΔE &gt; 0 (neighbour is BETTER): always accept (move there). If ΔE &lt; 0 (neighbour is WORSE): accept with probability e<sup>ΔE/T</sup>.</p></div>
+    <div class="formula">P(accept bad move) = e<sup>ΔE/T</sup>   where ΔE = E(neighbor) - E(current)</div>
+    <div class="box"><p><strong>Accept the bad move if:</strong> Random Number (RNG) &lt; e<sup>ΔE/T</sup></p></div>
+
+    <h3>For MINIMISATION Problems</h3>
+    <div class="box r"><p>ΔE = E(neighbour) − E(current). If ΔE &lt; 0 (neighbour is BETTER = lower): always accept. If ΔE &gt; 0 (neighbour is WORSE = higher): accept with probability e<sup>-ΔE/T</sup>.</p></div>
+    <div class="formula">P(accept bad move) = e<sup>-ΔE/T</sup>   (note negative sign for minimisation!)</div>
+    <div class="box r"><p><strong>From your notes (page 27):</strong> Table shows "Maximisation: ΔE=E₂-E₁, prob = e<sup>ΔE/T</sup>" and "Minimisation: prob = e<sup>-ΔE/T</sup>"</p></div>
+
+    <h3>Effect of Temperature T</h3>
+    <table>
+      <tr><th>Temperature</th><th>Effect on e<sup>ΔE/T</sup></th><th>Behaviour</th></tr>
+      <tr><td><strong>T → ∞ (very high)</strong></td><td>e<sup>ΔE/T</sup> → e⁰ = 1</td><td>All moves accepted! Pure random walk. Your notes: "T=∞ → High Temperature → Prob = e^(ΔE/∞) = e⁰ = 1 → Threshold value 1 means all accepted."</td></tr>
+      <tr><td><strong>T is moderate</strong></td><td>0 &lt; e<sup>ΔE/T</sup> &lt; 1</td><td>Bad moves accepted with some probability — balance exploration and exploitation.</td></tr>
+      <tr><td><strong>T → 0 (very low/cold)</strong></td><td>e<sup>ΔE/T</sup> → 0</td><td>Bad moves almost never accepted. Behaves like pure hill climbing. Your notes: "Threshold 0 means worst — all rejected = Basic Hill Climbing."</td></tr>
+    </table>
+    <div class="tip"><span>💡</span><p><strong>Memory trick:</strong> High T = Hot = Wild = random walks (explore). Low T = Cold = Calm = only accepts good moves (exploit). SA starts hot and cools down over time.</p></div>
+
+    <h3>SA Algorithm Steps</h3>
+    <div class="cb">
+<span class="c">// SA Algorithm for Maximisation</span>
+current = start_state
+T = initial_temperature
+
+for t = 0, 1, 2, ...:
+  T = temperature_schedule(t)   <span class="c">// T decreases over time</span>
+  neighbour = random_neighbour(current)
+  ΔE = E(neighbour) - E(current)
+  
+  if ΔE > 0:                    <span class="c">// neighbour is BETTER</span>
+      current = neighbour        <span class="c">// ALWAYS accept!</span>
+  else:                          <span class="c">// neighbour is WORSE</span>
+      prob = e^(ΔE / T)         <span class="c">// probability to accept bad move</span>
+      RNG = random(0, 1)
+      if RNG &lt; prob:             <span class="c">// "second chance"</span>
+          current = neighbour    <span class="c">// accept bad move!</span>
+      <span class="c">// else: stay at current (reject bad move)</span>
+
+<span class="c">// NOTE: "Once Accepted there is no Check" — from your notes!</span>
+<span class="c">// Once you move to a neighbour, don't re-evaluate it against current</span>
+    </div>
+    <div class="tip"><span>⚠️</span><p><strong>From your notes (page 27):</strong> "Once Accepted there is no Check" — after accepting a neighbour (good or bad), you move there unconditionally. Don't second-guess it! And the RNG for the NEXT timestep is calculated fresh.</p></div>
+  </div>
+</section>
+
+<!-- SUMMER 2024 SOLVED -->
+<section class="sec" id="summer24">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">📋</div>
+    <h2>Summer 2024 — SA Exam Problem SOLVED</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>Problem:</strong> Current state E(current)=10. Neighbours: N1(E=4), N2(E=9), N3(E=5), N4(E=12), N5(E=6). Given RNG values and temperatures. Find which neighbour is selected.</p></div>
+    <table>
+      <tr><th>Neighbour Gen #</th><th>E(Neighbour)</th><th>RNG value</th></tr>
+      <tr><td>1</td><td>4</td><td>0.55</td></tr>
+      <tr><td>2</td><td>9</td><td>0.95</td></tr>
+      <tr><td>3</td><td>5</td><td>0.5</td></tr>
+      <tr><td>4</td><td>12</td><td>0.1</td></tr>
+      <tr><td>5</td><td>6</td><td>0.35</td></tr>
+    </table>
+    <div class="anb">
+      <div class="albl">▶ SOLUTION — PART (a): T = 8, Maximisation</div>
+      <div class="cb">
+E(current) = 10. Maximisation → ΔE = E(N) - 10
+
+<span class="c">// N1: E=4</span>
+ΔE = 4-10 = -6 → BAD MOVE → "Second Chance"
+prob = e^(ΔE/T) = e^(-6/8) = e^(-0.75) = 0.47
+RNG = 0.55. Is RNG &lt; prob? → 0.55 &lt; 0.47? → NO → <span class="r">REJECTED</span>
+
+<span class="c">// N2: E=9 (still at current state = 10)</span>
+ΔE = 9-10 = -1 → BAD MOVE → "Second Chance"
+prob = e^(-1/8) = e^(-0.125) = 0.88
+RNG = 0.95. Is 0.95 &lt; 0.88? → NO → <span class="r">REJECTED</span>
+
+<span class="c">// N3: E=5 (still at current = 10)</span>
+ΔE = 5-10 = -5 → BAD MOVE
+prob = e^(-5/8) = e^(-0.625) = 0.535
+RNG = 0.5. Is 0.5 &lt; 0.535? → YES → <span class="g">ACCEPTED! Move to N3(E=5)</span>
+<span class="g">// "Once Accepted there is no check" — stop here!</span>
+
+<span class="g">Answer for T=8: N3 (E=5) is selected.</span>
+      </div>
+      <div class="anb">
+        <div class="albl">▶ PART (b): T = 2 (same as T=8 logic, same neighbours, same RNG)</div>
+        <div class="cb">
+<span class="c">// N1: E=4, ΔE=-6</span>
+prob = e^(-6/2) = e^(-3) ≈ 0.05
+RNG=0.55 &lt; 0.05? → NO → <span class="r">REJECTED</span>
+
+<span class="c">// N2: E=9, ΔE=-1</span>
+prob = e^(-1/2) = e^(-0.5) ≈ 0.607
+RNG=0.95 &lt; 0.607? → NO → <span class="r">REJECTED</span>
+
+<span class="c">// N3: E=5, ΔE=-5</span>
+prob = e^(-5/2) = e^(-2.5) ≈ 0.082
+RNG=0.5 &lt; 0.082? → NO → <span class="r">REJECTED</span>
+
+<span class="c">// N4: E=12, ΔE=+2 → GOOD MOVE</span>
+ΔE > 0 → <span class="g">ALWAYS ACCEPT! Move to N4(E=12)</span>
+
+<span class="g">Answer for T=2: N4 (E=12) is selected!</span>
+        </div>
+      </div>
+      <div class="anb">
+        <div class="albl">▶ PART (c): T = ∞</div>
+        <div class="cb">
+T = ∞ → prob = e^(ΔE/∞) = e^0 = 1 for ALL moves
+
+RNG is always &lt; 1 for any ΔE.
+So the FIRST neighbour N1 is always accepted!
+
+<span class="g">Answer: T=∞ → N1 (E=4) selected (first neighbour always accepted)</span>
+<span class="c">// Makes sense: infinite temperature = complete randomness</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FALL 2024 SOLVED -->
+<section class="sec" id="fall24">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">📋</div>
+    <h2>Fall 2024 — SA Exam Problem SOLVED (Minimisation!)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box p"><p><strong>Problem (from your notes, page 27):</strong> S(E=10) has neighbors A(E=15,RNG=0.88), B(E=20,RNG=0.67), C(E=4,RNG=0.45), D(E=6,RNG=0.20). Alphabetical order. T = (1/10)e<sup>10-t</sup>. <strong>MINIMISATION</strong> problem! P(bad move) = e<sup>-ΔE/T</sup>. ΔE = E(neighbour) - E(current).</p></div>
+    <div class="anb">
+      <div class="albl">▶ t=0 (T = (1/10)×e¹⁰ = 2202.64)</div>
+      <div class="cb">
+<span class="c">// Check A first (alphabetical order)</span>
+E(current)=10, E(A)=15
+ΔE = 15-10 = +5 → WORSE (minimisation: higher = worse) → "Second Chance"
+prob = e^(-ΔE/T) = e^(-5/2202.64) = e^(-0.00227) ≈ 0.9977
+RNG = 0.88. Is 0.88 &lt; 0.9977? → YES → <span class="g">ACCEPT A!</span>
+<span class="g">At t=0: Move to A (E=15). RNG=0.88 &lt; 0.9977</span>
+      </div>
+      <div class="anb">
+        <div class="albl">▶ IMPORTANT NOTE FROM YOUR NOTES!</div>
+        <div class="cb">
+Your notes (page 28) show:
+"ΔE = E(A) - E₀ = 15-10 = 5 (worse)"
+"2nd chance: prob = e^(-5/T) = e^(-5/2202.64) = 0.99"
+"0.88 ≤ 0.99 → Accepted"
+
+<span class="c">// The problem states minimisation, so:</span>
+<span class="c">// ΔE > 0 means WORSE (we want smaller, but neighbour is bigger)</span>
+<span class="c">// Probability = e^(-ΔE/T) for minimisation</span>
+
+<span class="c">// For T→∞:</span>
+T = (1/10)e^(10-∞) = (1/10)e^(-∞) = 0
+"Temperature 0 means all rejected" ← your notes!
+prob = e^(-ΔE/0) = e^(-∞) = 0 → No bad moves accepted = Hill Climbing
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPRING 2025 SOLVED -->
+<section class="sec" id="spring25">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">📋</div>
+    <h2>Spring 2025 Midterm — SA Problem (Starlink)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p><strong>Problem:</strong> S(U=20) with neighbors A(15),B(12),C(13),D(3),E(9). T=100-0.2t. N=|sin(90-4t)| degrees. Maximisation. t=0:C, t=1:A, t=2:E, t=3:B, t=4:D selected.</p></div>
+    <div class="anb">
+      <div class="albl">▶ FULL CALCULATION</div>
+      <div class="cb">
+<span class="c">// All calculations: ΔU = U(neighbour) - 20, maximize</span>
+<span class="c">// Good move (ΔU>0): always accept</span>
+<span class="c">// Bad move (ΔU<0): accept if RNG < e^(ΔU/T)</span>
+
+<span class="y">t=0: Check C(U=13)</span>
+T(0)=100-0=100; N=|sin(90-0)|=|sin90°|=1.0
+ΔU=13-20=-7 (BAD)
+prob=e^(-7/100)=e^(-0.07)≈0.932
+N=1.0 < 0.932? → NO → <span class="r">REJECT C</span>
+
+<span class="y">t=1: Check A(U=15)</span>
+T(1)=99.8; N=|sin(86°)|≈0.9976
+ΔU=15-20=-5 (BAD)
+prob=e^(-5/99.8)≈0.9512
+N=0.9976 < 0.9512? → NO → <span class="r">REJECT A</span>
+
+<span class="y">t=2: Check E(U=9)</span>
+T(2)=99.6; N=|sin(82°)|≈0.9903
+ΔU=9-20=-11 (BAD)
+prob=e^(-11/99.6)≈0.8953
+N=0.9903 < 0.8953? → NO → <span class="r">REJECT E</span>
+
+<span class="y">t=3: Check B(U=12)</span>
+T(3)=99.4; N=|sin(78°)|≈0.9781
+ΔU=12-20=-8 (BAD)
+prob=e^(-8/99.4)≈0.9228
+N=0.9781 < 0.9228? → NO → <span class="r">REJECT B</span>
+
+<span class="y">t=4: Check D(U=3)</span>
+T(4)=99.2; N=|sin(74°)|≈0.9613
+ΔU=3-20=-17 (BAD)
+prob=e^(-17/99.2)≈0.8421
+N=0.9613 < 0.8421? → NO → <span class="r">REJECT D</span>
+
+<span class="g">Summary t=0 to t=4: ALL REJECTED. Agent stays at S(U=20).</span>
+
+<span class="c">// For part (b), t=5, choose any neighbor:</span>
+<span class="y">t=5: Choose A(U=15)</span>
+T(5)=100-1.0=99; N=|sin(70°)|≈0.9397
+ΔU=15-20=-5; prob=e^(-5/99)≈0.9509
+N=0.9397 < 0.9509? → YES → <span class="g">ACCEPT A!</span>
+      </div>
+    </div>
+    <h3>SA Summary Table</h3>
+    <table>
+      <tr><th>T value</th><th>Acceptance behaviour</th><th>Acts like</th></tr>
+      <tr><td>T = ∞</td><td>All moves accepted (prob=1)</td><td>Random walk</td></tr>
+      <tr><td>T = large</td><td>Most moves accepted, even bad ones</td><td>Exploration</td></tr>
+      <tr><td>T = small</td><td>Only slightly-bad moves occasionally accepted</td><td>Mostly HC</td></tr>
+      <tr><td>T = 0</td><td>No bad moves accepted (prob=0)</td><td>Pure Hill Climbing</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

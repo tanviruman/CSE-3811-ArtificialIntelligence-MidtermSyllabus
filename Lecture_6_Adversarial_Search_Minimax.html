@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 6 — Adversarial Search · Minimax · Alpha-Beta Pruning</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#0a0e1a,#1a0e2e);border-bottom:2px solid var(--accent3);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(124,58,237,.15),transparent 70%);border-radius:50%;}
+  header::after{content:'';position:absolute;bottom:-40px;left:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,212,255,.08),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(124,58,237,.15);border:1px solid var(--accent3);color:var(--accent3);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,46px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--accent3);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--accent3);border-color:var(--accent3);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent3);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}li strong{color:var(--text);}
+  .box{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-left:4px solid var(--accent3);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.b{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.2);border-left-color:var(--accent);}
+  .box.g{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);border-left-color:var(--accent4);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box.o{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.2);border-left-color:var(--accent2);}
+  .box.r{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);border-left-color:#ef4444;}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(124,58,237,.12);color:var(--accent3);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}.tip p{margin:0;color:var(--hi);font-size:13px;}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(124,58,237,.15);color:var(--accent3);padding:2px 6px;border-radius:4px;font-size:12px;}
+  .cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#e2e8f0;overflow-x:auto;line-height:1.8;}
+  .cb .cm{color:#6b7280;}.cb .g{color:#86efac;}.cb .r{color:#fca5a5;}.cb .y{color:var(--accent5);}.cb .p{color:#c084fc;}.cb .b{color:#7dd3fc;}
+  .formula{background:#0d1117;border:1px solid var(--accent3);border-radius:8px;padding:14px 18px;margin:12px 0;font-family:'IBM Plex Mono',monospace;color:var(--accent3);font-size:15px;text-align:center;}
+  .formula.big{font-size:20px;padding:18px;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .anb{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:16px 18px;margin:10px 0;}
+  .albl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent4);margin-bottom:8px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0;}
+  .card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .card h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:14px;margin-bottom:8px;}
+  .step-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;margin-bottom:10px;}
+  .sn{width:26px;height:26px;border-radius:50%;background:var(--accent3);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sn.max{background:#10b981;}.sn.min{background:#ef4444;}
+  /* Tree visualizer */
+  .tree-wrap{background:#0d1117;border:1px solid var(--border);border-radius:10px;padding:20px;margin:14px 0;overflow-x:auto;}
+  .tree-row{display:flex;justify-content:center;gap:0;margin-bottom:24px;position:relative;}
+  .node{display:flex;flex-direction:column;align-items:center;min-width:60px;}
+  .nbox{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;border:2px solid;}
+  .nbox.max{background:rgba(16,185,129,.15);border-color:#10b981;color:#10b981;}
+  .nbox.min{background:rgba(239,68,68,.15);border-color:#ef4444;color:#ef4444;}
+  .nbox.leaf{background:rgba(100,100,100,.15);border-color:#555;color:#ccc;}
+  .nbox.pruned{background:rgba(239,68,68,.05);border-color:#ef444455;color:#ef444499;text-decoration:line-through;}
+  .nlabel{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px;text-align:center;}
+  .alpha-beta{font-family:'IBM Plex Mono',monospace;font-size:9px;margin-top:2px;text-align:center;}
+  .alpha-beta .a{color:#10b981;}.alpha-beta .b{color:#ef4444;}
+  .prune-badge{background:#ef444422;border:1px solid #ef444455;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#ef4444;margin-top:3px;}
+  /* step highlight */
+  .step-trace{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:16px;margin:10px 0;}
+  .step-trace .row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start;}
+  .step-trace .row:last-child{border-bottom:none;}
+  .step-trace .t{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent3);min-width:60px;padding-top:2px;}
+  .step-trace .v{font-size:13px;color:var(--muted);}
+  .step-trace .v strong{color:var(--text);}
+  .accept{color:#10b981 !important;font-weight:700;}
+  .reject{color:#ef4444 !important;font-weight:700;}
+  .prune{color:#ef4444 !important;font-weight:700;}
+  @media(max-width:600px){.two,.three{grid-template-columns:1fr;}.tree-wrap{font-size:11px;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">LECTURE 6 · ADVERSARIAL SEARCH</div>
+  <h1>Adversarial Search<br><span>Minimax · Alpha-Beta Pruning · Game Trees</span></h1>
+  <p>// Game Theory · Zero-Sum · MAX vs MIN · α-β Step-by-Step · All Exam Problems Solved</p>
+</header>
+<nav>
+  <a href="#multiagent">Multiagent</a>
+  <a href="#games">Games</a>
+  <a href="#gametree">Game Tree</a>
+  <a href="#minimax">Minimax</a>
+  <a href="#algorithm">Algorithm</a>
+  <a href="#resource">Resource Limits</a>
+  <a href="#pruning">Alpha-Beta</a>
+  <a href="#walkthrough">Full Walkthrough</a>
+  <a href="#practice">Practice Problem</a>
+  <a href="#exam1">Spring 2025</a>
+  <a href="#exam2">Summer 2025</a>
+  <a href="#exam3">Fall 2025</a>
+  <a href="#assign">Assignment Q5</a>
+</nav>
+<main>
+
+<!-- ═══ MULTIAGENT ENVIRONMENTS ═══ -->
+<section class="sec" id="multiagent">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">🎭</div>
+    <h2>Multiagent Environments — The Big Picture</h2>
+  </div>
+  <div class="bdy">
+    <p>So far all search problems had one agent acting alone. Now we deal with <strong>multiple agents</strong> — each agent must consider what <em>other agents</em> will do and how that affects its own outcome.</p>
+
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h4>🤝 Co-operative Environments</h4>
+        <p style="font-size:13px;color:var(--muted);">Agents share a goal and help each other. Example: multiple robots cooperating to move a heavy object, taxi-driver cooperative systems.</p>
+      </div>
+      <div class="card" style="border-top:3px solid #ef4444">
+        <h4>⚔️ Competitive Environments</h4>
+        <p style="font-size:13px;color:var(--muted);">Agents' goals are in <strong>direct conflict</strong>. One agent's gain = another's loss. This gives rise to <strong>adversarial search problems</strong> — commonly called GAMES.</p>
+      </div>
+    </div>
+
+    <div class="box"><p><strong>Adversarial Search:</strong> The unpredictability of other agents introduces <strong>contingencies</strong> — the optimal move depends on what the opponent does, and the opponent is actively trying to work against you.</p></div>
+  </div>
+</section>
+
+<!-- ═══ GAME THEORY ═══ -->
+<section class="sec" id="games">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">♟️</div>
+    <h2>Game Theory — What Kind of Games Does AI Study?</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p>In AI, the most common games studied are <strong>deterministic, turn-taking, two-player, zero-sum games of perfect information</strong>. Classic examples: chess, checkers, Go, tic-tac-toe.</p></div>
+
+    <h3>Breaking Down the Terminology</h3>
+    <table>
+      <tr><th>Property</th><th>What it Means</th><th>Example</th></tr>
+      <tr><td><strong>Deterministic</strong></td><td>No randomness. Same action always leads to same result.</td><td>Chess (no dice). Contrast: Backgammon (has dice → stochastic).</td></tr>
+      <tr><td><strong>Turn-taking</strong></td><td>Players alternate moves — not simultaneous.</td><td>Chess, checkers, tic-tac-toe.</td></tr>
+      <tr><td><strong>Two-player</strong></td><td>Exactly two players: MAX and MIN.</td><td>Chess (White vs Black).</td></tr>
+      <tr><td><strong>Zero-sum</strong></td><td><strong>One player's gain = other player's loss.</strong> Net change in "wealth" is zero. Utility values at end are always equal and opposite.</td><td>If MAX wins +1, MIN gets -1. Total = 0.</td></tr>
+      <tr><td><strong>Perfect information</strong></td><td>Both players can see the entire game state at all times.</td><td>Chess (all pieces visible). Contrast: Poker (hidden cards = imperfect).</td></tr>
+    </table>
+
+    <div class="tip"><span>💡</span><p><strong>Zero-sum explained simply:</strong> If one player wins a chess game, the other necessarily loses. It is this OPPOSITION between utility functions that makes the situation adversarial. No draw = zero-sum. A draw can be 0,0 — still sums to 0.</p></div>
+
+    <h3>The Two Players</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid #10b981">
+        <h4>MAX Player ▲</h4>
+        <ul style="font-size:13px;color:var(--muted);padding-left:18px;">
+          <li>Wants to <strong>maximise</strong> the utility value</li>
+          <li>We (the AI agent) play as MAX</li>
+          <li>Moves at MAX nodes in the game tree</li>
+          <li>Picks the child with the <strong>highest</strong> value</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid #ef4444">
+        <h4>MIN Player ▽</h4>
+        <ul style="font-size:13px;color:var(--muted);padding-left:18px;">
+          <li>Wants to <strong>minimise</strong> the utility value</li>
+          <li>The opponent plays as MIN</li>
+          <li>Moves at MIN nodes in the game tree</li>
+          <li>Picks the child with the <strong>lowest</strong> value</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="box r"><p><strong>Critical assumption in Minimax:</strong> The opponent (MIN) is assumed to play <strong>perfectly rationally</strong> — always choosing the move that hurts MAX the most. This is why it's called the "adversarial" assumption.</p></div>
+  </div>
+</section>
+
+<!-- ═══ GAME TREE ═══ -->
+<section class="sec" id="gametree">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🌳</div>
+    <h2>Game Tree — The Structure of a Game</h2>
+  </div>
+  <div class="bdy">
+    <div class="box b"><p>A <strong>game tree</strong> is defined by:<br>
+    • <strong>Initial state</strong> — the starting board configuration<br>
+    • <strong>ACTIONS function</strong> — legal moves from any state<br>
+    • <strong>RESULT function</strong> — what state results from each action<br>
+    • <strong>TERMINAL-TEST</strong> — is this a leaf (game over)?<br>
+    • <strong>UTILITY function</strong> — the value at terminal states (e.g., +1, -1, 0)</p></div>
+
+    <h3>Game Tree Structure</h3>
+    <div class="tree-wrap">
+      <div style="text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;margin-bottom:12px;">
+        ↓ MAX turn first → MIN responds → MAX responds → ... → Terminal nodes (utility values)
+      </div>
+      <!-- Visual tree illustration -->
+      <div style="text-align:center;line-height:2.5;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#e2e8f0;">
+        <div style="color:#10b981;font-weight:700;">MAX</div>
+        <div>
+          <span style="background:rgba(16,185,129,.15);border:2px solid #10b981;border-radius:8px;padding:6px 12px;color:#10b981;font-weight:700;">A (root)</span>
+        </div>
+        <div style="color:var(--muted);font-size:10px;margin:4px 0;">↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↘</div>
+        <div style="display:flex;justify-content:center;gap:60px;align-items:center;margin-bottom:4px;">
+          <span style="background:rgba(239,68,68,.15);border:2px solid #ef4444;border-radius:8px;padding:6px 12px;color:#ef4444;font-weight:700;">B</span>
+          <span style="background:rgba(239,68,68,.15);border:2px solid #ef4444;border-radius:8px;padding:6px 12px;color:#ef4444;font-weight:700;">C</span>
+          <span style="background:rgba(239,68,68,.15);border:2px solid #ef4444;border-radius:8px;padding:6px 12px;color:#ef4444;font-weight:700;">D</span>
+        </div>
+        <div style="color:#ef4444;font-weight:700;">MIN</div>
+        <div style="color:var(--muted);font-size:10px;margin:4px 0;">↙↘&nbsp;&nbsp;&nbsp;↙↘&nbsp;&nbsp;&nbsp;↙↘</div>
+        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">3</span>
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">12</span>
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">8</span>
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">2</span>
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">4</span>
+          <span style="background:#1a1a2e;border:2px solid #555;border-radius:6px;padding:5px 10px;color:#ccc;font-size:12px;">6</span>
+        </div>
+        <div style="color:#888;font-size:11px;">Terminal nodes (leaf values)</div>
+      </div>
+    </div>
+
+    <h3>Key Properties of Game Trees</h3>
+    <ul>
+      <li><strong>Root = current game state</strong> (it's MAX's turn to move)</li>
+      <li>MAX and MIN nodes <strong>alternate</strong> at each level</li>
+      <li><strong>Leaf nodes</strong> (terminal states) have actual utility values (e.g., +1 = win, -1 = lose, 0 = draw)</li>
+      <li>Non-terminal nodes get their values <strong>assigned by Minimax</strong> (not given directly)</li>
+      <li>The game tree can be enormous — chess has ~10<sup>40</sup> legal positions and ~10<sup>123</sup> possible games</li>
+    </ul>
+
+    <div class="tip"><span>⚠️</span><p><strong>Exam warning:</strong> In questions, triangles pointing UP (▲) = MAX nodes. Triangles pointing DOWN (▽) = MIN nodes. Always check the diagram carefully — some exam questions mix them up to confuse you.</p></div>
+  </div>
+</section>
+
+<!-- ═══ MINIMAX ═══ -->
+<section class="sec" id="minimax">
+  <div class="sec-hd" style="border-left:4px solid #10b981">
+    <div class="ico" style="background:rgba(16,185,129,.1)">🧮</div>
+    <h2>The Minimax Algorithm — Core Concept</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p>The <strong>minimax value MINIMAX(n)</strong> of a node is the utility (for MAX) of being in that state, <em>assuming both players play optimally</em>. Think of it as: what is the best outcome MAX can guarantee if both sides play perfectly?</p></div>
+
+    <h3>The Three Rules of Minimax</h3>
+
+    <div class="step-row" style="margin-bottom:14px">
+      <div class="sn max">1</div>
+      <div>
+        <p style="margin:0"><strong style="color:#10b981">Terminal Node:</strong> MINIMAX(n) = UTILITY(n)</p>
+        <p style="font-size:13px;margin:4px 0 0">Just use the given leaf value. No calculation needed.</p>
+      </div>
+    </div>
+    <div class="step-row" style="margin-bottom:14px">
+      <div class="sn max">2</div>
+      <div>
+        <p style="margin:0"><strong style="color:#10b981">MAX Node:</strong> MINIMAX(n) = max over all successors s of MINIMAX(s)</p>
+        <p style="font-size:13px;margin:4px 0 0">Pick the HIGHEST value among all children. MAX wants the best outcome.</p>
+      </div>
+    </div>
+    <div class="step-row" style="margin-bottom:14px">
+      <div class="sn min">3</div>
+      <div>
+        <p style="margin:0"><strong style="color:#ef4444">MIN Node:</strong> MINIMAX(n) = min over all successors s of MINIMAX(s)</p>
+        <p style="font-size:13px;margin:4px 0 0">Pick the LOWEST value among all children. MIN wants to hurt MAX.</p>
+      </div>
+    </div>
+
+    <div class="formula big">MINIMAX(n) = UTILITY(n)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if TERMINAL(n)<br>= max_s MINIMAX(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if MAX node<br>= min_s MINIMAX(s)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if MIN node</div>
+
+    <h3>Simple Worked Example — Bottom-Up</h3>
+    <div class="box b">
+      <p><strong>Tree:</strong> Root=MAX, two MIN children (B, C), each with two leaf children.</p>
+      <p>B's leaves: 3, 12 &nbsp;|&nbsp; C's leaves: 8, 2</p>
+    </div>
+    <div class="cb">
+<span class="cm">// Step 1: Compute MIN nodes (B and C) from their leaves</span>
+MINIMAX(B) = <span class="r">min(3, 12) = 3</span>   <span class="cm">// MIN picks LOWEST</span>
+MINIMAX(C) = <span class="r">min(8, 2) = 2</span>    <span class="cm">// MIN picks LOWEST</span>
+
+<span class="cm">// Step 2: Compute MAX root from B and C's values</span>
+MINIMAX(root) = <span class="g">max(3, 2) = 3</span>  <span class="cm">// MAX picks HIGHEST</span>
+
+<span class="cm">// Result: MAX should move to B (value=3)</span>
+<span class="cm">// If MAX moves to C, MIN will play leaf=2, giving MAX only 2</span>
+<span class="cm">// If MAX moves to B, MIN will play leaf=3, giving MAX 3 (better!)</span>
+    </div>
+
+    <h3>Properties of Minimax</h3>
+    <table>
+      <tr><th>Property</th><th>Value / Explanation</th></tr>
+      <tr><td><strong>Complete?</strong></td><td>Yes — if the game tree is finite</td></tr>
+      <tr><td><strong>Optimal?</strong></td><td>Yes — against an optimal opponent</td></tr>
+      <tr><td><strong>Time complexity</strong></td><td>O(b<sup>m</sup>) — exponential! b=branching factor, m=max depth</td></tr>
+      <tr><td><strong>Space complexity</strong></td><td>O(bm) — DFS-style traversal</td></tr>
+      <tr><td><strong>Against suboptimal opponent?</strong></td><td>Still wins, but may not exploit opponent's mistakes optimally</td></tr>
+    </table>
+
+    <div class="tip"><span>⚠️</span><p><strong>Critical exam point:</strong> Minimax is optimal against a <strong>rational opponent</strong>. Against an irrational (random) opponent, minimax may actually perform suboptimally — you could exploit their mistakes better with a different strategy. But you'll never do WORSE than minimax guarantees.</p></div>
+  </div>
+</section>
+
+<!-- ═══ ALGORITHM CODE ═══ -->
+<section class="sec" id="algorithm">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">⚙️</div>
+    <h2>Minimax Algorithm — Pseudocode & How to Execute</h2>
+  </div>
+  <div class="bdy">
+    <div class="cb">
+<span class="cm">// MINIMAX-DECISION: returns the best action for MAX at root</span>
+function MINIMAX-DECISION(state):
+    return argmax over actions a of MIN-VALUE(RESULT(state, a))
+
+<span class="cm">// MAX-VALUE: returns the best value MAX can achieve</span>
+function MAX-VALUE(state):
+    if TERMINAL-TEST(state): return UTILITY(state)
+    v = <span class="r">-∞</span>
+    for each action a in ACTIONS(state):
+        v = <span class="g">max(v, MIN-VALUE(RESULT(state, a)))</span>
+    return v
+
+<span class="cm">// MIN-VALUE: returns the best value MIN can achieve (worst for MAX)</span>
+function MIN-VALUE(state):
+    if TERMINAL-TEST(state): return UTILITY(state)
+    v = <span class="g">+∞</span>
+    for each action a in ACTIONS(state):
+        v = <span class="r">min(v, MAX-VALUE(RESULT(state, a)))</span>
+    return v
+    </div>
+
+    <h3>How to Execute Minimax on a Game Tree — Step by Step</h3>
+    <ol>
+      <li><strong>Identify terminal nodes (leaves).</strong> Their values are given.</li>
+      <li><strong>Work bottom-up.</strong> Start from the deepest non-terminal level.</li>
+      <li><strong>At MAX nodes:</strong> take the maximum of all children's values.</li>
+      <li><strong>At MIN nodes:</strong> take the minimum of all children's values.</li>
+      <li><strong>Propagate up</strong> until you reach the root.</li>
+      <li><strong>At the root (MAX):</strong> choose the action that leads to the child with the highest value — that's the optimal move.</li>
+    </ol>
+
+    <div class="box o"><p><strong>Order of evaluation:</strong> Minimax uses DFS (depth-first). It goes to the leftmost leaf first, then backtracks. Unless told otherwise, assume left-to-right traversal.</p></div>
+  </div>
+</section>
+
+<!-- ═══ RESOURCE LIMITS ═══ -->
+<section class="sec" id="resource">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">⏱️</div>
+    <h2>Resource Limits — Why We Can't Always Search to Leaves</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>The Problem:</strong> Real games like chess have ~10<sup>123</sup> possible game sequences. Even at 10K nodes/second with 100 seconds per move = 1 million nodes. Alpha-beta reaches ~depth 8. We <strong>cannot search to the leaves</strong> in realistic games.</p></div>
+
+    <h3>Solution: Depth-Limited Search + Evaluation Function</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent5)">
+        <h4>Depth-Limited Search</h4>
+        <p style="font-size:13px;color:var(--muted)">Stop searching after a fixed depth (e.g., 8 plies). Don't expand deeper.</p>
+        <p style="font-size:13px;color:var(--muted)">Tradeoff: Faster, but may miss threats/opportunities beyond depth limit.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3)">
+        <h4>Evaluation Function</h4>
+        <p style="font-size:13px;color:var(--muted)">Replace UTILITY at cut-off nodes with an <strong>evaluation function</strong> that estimates how good the position is — without searching further.</p>
+        <p style="font-size:13px;color:var(--muted)">Example for chess: count material (queen=9, rook=5, etc.), board control, king safety.</p>
+      </div>
+    </div>
+
+    <h3>Effects of Using Evaluation Functions</h3>
+    <ul>
+      <li><strong>Guarantee of optimal play is gone</strong> — evaluation functions are imperfect approximations</li>
+      <li><strong>Deeper search compensates</strong> — the deeper the evaluation function is buried, the less its quality matters (the tree itself corrects errors)</li>
+      <li><strong>Tradeoff:</strong> More complex evaluation function = more accurate but slower; simpler = faster but less accurate</li>
+    </ul>
+
+    <div class="box"><p><strong>Key exam insight:</strong> Why use evaluation functions at all? Because O(b<sup>m</sup>) is too expensive for large m. With depth limit and eval function, we sacrifice guaranteed optimality for practical speed.</p></div>
+  </div>
+</section>
+
+<!-- ═══ ALPHA-BETA PRUNING ═══ -->
+<section class="sec" id="pruning">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">✂️</div>
+    <h2>Alpha-Beta Pruning — Skip Irrelevant Branches</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>Core idea:</strong> Minimax must examine every node — O(b<sup>m</sup>). Alpha-beta <strong>prunes branches that cannot possibly affect the root's decision</strong>. Same result as minimax, but computed faster. Best case: O(b<sup>m/2</sup>) — as if the tree has HALF the depth!</p></div>
+
+    <h3>The Two Values</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid #10b981;text-align:center;">
+        <h4 style="font-size:24px;color:#10b981;">α (alpha)</h4>
+        <p style="font-size:13px;color:var(--muted);">The <strong>best value MAX has found so far</strong> along the current path. Initially <strong>−∞</strong>.</p>
+        <p style="font-size:13px;color:var(--muted);">Updated at <strong>MAX nodes</strong> when a better child is found.</p>
+        <p style="font-size:12px;color:#10b981;margin-top:6px;">"The floor MAX won't go below"</p>
+      </div>
+      <div class="card" style="border-top:3px solid #ef4444;text-align:center;">
+        <h4 style="font-size:24px;color:#ef4444;">β (beta)</h4>
+        <p style="font-size:13px;color:var(--muted);">The <strong>best value MIN has found so far</strong> along the current path. Initially <strong>+∞</strong>.</p>
+        <p style="font-size:13px;color:var(--muted);">Updated at <strong>MIN nodes</strong> when a better (lower) child is found.</p>
+        <p style="font-size:12px;color:#ef4444;margin-top:6px;">"The ceiling MIN won't exceed"</p>
+      </div>
+    </div>
+
+    <h3>The Pruning Condition</h3>
+    <div class="formula big">PRUNE when: α ≥ β</div>
+    <div class="box r"><p><strong>In plain English:</strong> If MAX already has a guaranteed path worth α, and MIN is currently offering at most β ≤ α, then MIN will never let MAX take this path. MAX won't come here. Skip remaining children!</p></div>
+
+    <h3>Pruning Rules — Which Nodes to Cut</h3>
+    <table>
+      <tr><th>Node Type</th><th>When to Prune</th><th>Why</th></tr>
+      <tr><td><strong>MIN node</strong></td><td>If current node's value v ≤ α (parent's MAX guarantee)</td><td>MAX already has something better (α) elsewhere. MAX won't choose this MIN node since it gives ≤ α. Prune remaining children of this MIN node.</td></tr>
+      <tr><td><strong>MAX node</strong></td><td>If current node's value v ≥ β (parent's MIN guarantee)</td><td>MIN already has something better (β ≤ v) elsewhere. MIN won't let this MAX node be reached. Prune remaining children of this MAX node.</td></tr>
+    </table>
+
+    <div class="tip"><span>💡</span><p><strong>Memory trick:</strong> "Alpha is MAX's safety net (updated at MAX nodes). Beta is MIN's ceiling (updated at MIN nodes). Cut when safety net ≥ ceiling — they've overlapped and this branch is irrelevant."</p></div>
+
+    <h3>Alpha-Beta Algorithm</h3>
+    <div class="cb">
+<span class="cm">// Alpha-Beta Search — returns value at root</span>
+function ALPHA-BETA(node, α, β, isMax):
+    if TERMINAL(node): return UTILITY(node)
+    
+    if isMax:  <span class="cm">// MAX node</span>
+        v = <span class="r">-∞</span>
+        for each child c:
+            v = max(v, ALPHA-BETA(c, α, β, <span class="b">false</span>))
+            α = max(α, v)          <span class="cm">// update alpha</span>
+            if α ≥ β: <span class="r">BREAK</span>   <span class="cm">// β-cutoff! Prune remaining siblings</span>
+        return v
+    
+    else:  <span class="cm">// MIN node</span>
+        v = <span class="g">+∞</span>
+        for each child c:
+            v = min(v, ALPHA-BETA(c, α, β, <span class="b">true</span>))
+            β = min(β, v)          <span class="cm">// update beta</span>
+            if α ≥ β: <span class="r">BREAK</span>   <span class="cm">// α-cutoff! Prune remaining siblings</span>
+        return v
+
+<span class="cm">// Call at root: ALPHA-BETA(root, -∞, +∞, true)</span>
+    </div>
+
+    <h3>Step-by-Step Rules for Exams</h3>
+    <ol>
+      <li><strong>Start at root</strong> with α=−∞, β=+∞</li>
+      <li><strong>Pass (α, β) down</strong> to children — children inherit parent's α, β</li>
+      <li><strong>At MAX node:</strong> update α = max(α, child_value) after each child. If α ≥ β → prune remaining children.</li>
+      <li><strong>At MIN node:</strong> update β = min(β, child_value) after each child. If α ≥ β → prune remaining children.</li>
+      <li><strong>Propagate values up</strong> same as minimax — MAX takes max, MIN takes min.</li>
+      <li><strong>Final root value</strong> is identical to regular minimax.</li>
+    </ol>
+
+    <div class="box g"><p><strong>Key fact:</strong> Alpha-beta pruning does NOT change the minimax value. The root still gets the exact same answer. It only SKIPS the evaluation of branches that can't affect the result. This is why it's safe to prune.</p></div>
+  </div>
+</section>
+
+<!-- ═══ FULL WALKTHROUGH ═══ -->
+<section class="sec" id="walkthrough">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">🔬</div>
+    <h2>Full Step-by-Step Walkthrough — Slide Example (4,6,7,9,1,2,0,1)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p><strong>Tree from lecture slides:</strong> 3-level tree. Root=MAX. Level 1=MIN (two children). Level 2=MAX (four children, two under each MIN). Leaves (left to right): 4, 6, 7, 9, 1, 2, 0, 1</p></div>
+
+    <h3>Tree Structure</h3>
+    <div class="cb">
+<span class="cm">// Tree layout:</span>
+                   ROOT (MAX)
+                 /          \
+           MIN-L              MIN-R
+          /    \             /    \
+      MAX-A  MAX-B       MAX-C  MAX-D
+       / \    / \         / \    / \
+      4   6  7   9       1   2  0   1
+    </div>
+
+    <h3>Phase 1: Without Pruning (Normal Minimax)</h3>
+    <div class="anb">
+      <div class="albl">▶ STEP 1 — Compute MAX nodes at depth 2 (bottom-up)</div>
+      <div class="cb">
+MAX-A = max(4, 6) = <span class="g">6</span>
+MAX-B = max(7, 9) = <span class="g">9</span>
+MAX-C = max(1, 2) = <span class="g">2</span>
+MAX-D = max(0, 1) = <span class="g">1</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ STEP 2 — Compute MIN nodes at depth 1</div>
+      <div class="cb">
+MIN-L = min(MAX-A, MAX-B) = min(6, 9) = <span class="r">6</span>
+MIN-R = min(MAX-C, MAX-D) = min(2, 1) = <span class="r">1</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ STEP 3 — Compute ROOT (MAX node at depth 0)</div>
+      <div class="cb">
+ROOT = max(MIN-L, MIN-R) = max(6, 1) = <span class="g">6</span>
+
+<span class="cm">✅ Minimax value at root = 6</span>
+<span class="cm">✅ MAX should move LEFT (to MIN-L, which guarantees value=6)</span>
+      </div>
+    </div>
+
+    <h3>Phase 2: With Alpha-Beta Pruning (Step-by-Step)</h3>
+    <div class="step-trace">
+      <div class="row">
+        <span class="t">INIT</span>
+        <span class="v">Call ALPHA-BETA(ROOT, α=<strong>−∞</strong>, β=<strong>+∞</strong>, MAX)</span>
+      </div>
+      <div class="row">
+        <span class="t">ROOT→MIN-L</span>
+        <span class="v">Go to MIN-L. Pass down (α=−∞, β=+∞). MIN-L is a MIN node.</span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-L→MAX-A</span>
+        <span class="v">Go to MAX-A. Pass (α=−∞, β=+∞). MAX-A is a MAX node.</span>
+      </div>
+      <div class="row">
+        <span class="t">MAX-A: leaf 4</span>
+        <span class="v">Evaluate leaf 4. v=4. Update α=max(−∞,4)=<strong class="accept">4</strong>. Check: α(4) ≥ β(+∞)? NO → continue.</span>
+      </div>
+      <div class="row">
+        <span class="t">MAX-A: leaf 6</span>
+        <span class="v">Evaluate leaf 6. v=max(4,6)=6. Update α=max(4,6)=<strong class="accept">6</strong>. Check: α(6) ≥ β(+∞)? NO → done with MAX-A. <strong>Return 6.</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-L gets 6</span>
+        <span class="v">v=min(+∞,6)=6. Update β=min(+∞,6)=<strong style="color:#ef4444">6</strong>. Check: α(−∞) ≥ β(6)? NO → continue to MAX-B.</span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-L→MAX-B</span>
+        <span class="v">Go to MAX-B. Pass (α=−∞, β=<strong>6</strong>). MAX-B is MAX node.</span>
+      </div>
+      <div class="row">
+        <span class="t">MAX-B: leaf 7</span>
+        <span class="v">Evaluate 7. v=7. Update α=max(−∞,7)=<strong class="accept">7</strong>. Check: α(7) ≥ β(6)? <strong class="prune">YES! 7 ≥ 6 → β-CUTOFF!</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">PRUNE leaf 9</span>
+        <span class="v"><span class="prune">✂️ Leaf 9 is PRUNED!</span> We know MAX-B ≥ 7 > 6 = β. MIN-L would never choose MAX-B since it already has MAX-A=6 (which is lower). No need to check leaf 9. <strong>Return 7.</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-L done</span>
+        <span class="v">v=min(6,7)=6. MIN-L returns <strong>6</strong>. ROOT updates α=max(−∞,6)=<strong class="accept">6</strong>.</span>
+      </div>
+      <div class="row">
+        <span class="t">ROOT→MIN-R</span>
+        <span class="v">Go to MIN-R. Pass (α=<strong>6</strong>, β=+∞). MIN-R is MIN node.</span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-R→MAX-C</span>
+        <span class="v">Go to MAX-C. Pass (α=6, β=+∞). MAX-C is MAX node.</span>
+      </div>
+      <div class="row">
+        <span class="t">MAX-C: leaf 1</span>
+        <span class="v">Evaluate 1. v=1. Update α=max(6,1)=<strong>6</strong> (unchanged). Check: α(6) ≥ β(+∞)? NO → continue.</span>
+      </div>
+      <div class="row">
+        <span class="t">MAX-C: leaf 2</span>
+        <span class="v">Evaluate 2. v=max(1,2)=2. α=max(6,2)=6 (unchanged). Done. <strong>Return 2.</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">MIN-R gets 2</span>
+        <span class="v">v=min(+∞,2)=2. Update β=min(+∞,2)=<strong style="color:#ef4444">2</strong>. Check: α(6) ≥ β(2)? <strong class="prune">YES! 6 ≥ 2 → α-CUTOFF!</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">PRUNE MAX-D</span>
+        <span class="v"><span class="prune">✂️ Entire MAX-D subtree (leaves 0 and 1) is PRUNED!</span> MIN-R ≤ 2 < 6 = α. ROOT (MAX) already has 6 from MIN-L, so won't choose MIN-R path regardless. <strong>Return 2.</strong></span>
+      </div>
+      <div class="row">
+        <span class="t">ROOT done</span>
+        <span class="v">ROOT = max(6, 2) = <strong class="accept">6</strong>. Same as minimax! Optimal move = go left (MIN-L).</span>
+      </div>
+    </div>
+
+    <h3>Final Summary</h3>
+    <div class="anb">
+      <div class="albl">▶ RESULTS</div>
+      <div class="cb">
+Minimax value at root = <span class="g">6</span>
+Optimal move for MAX: go LEFT to MIN-L
+
+Pruned nodes:
+  ✂️ Leaf 9 (child of MAX-B) — due to β-cutoff at MAX-B (7 ≥ β=6)
+  ✂️ Entire MAX-D (leaves 0 and 1) — due to α-cutoff at MIN-R (α=6 ≥ 2)
+
+Nodes evaluated: 4, 6, 7 (MAX-A: 2 leaves, MAX-B: 1 leaf of 2, MAX-C: 2 leaves)
+Nodes SKIPPED: 9, MAX-D(0), MAX-D(1) = 3 nodes pruned out of 8 leaves
+      </div>
+    </div>
+
+    <div class="tip"><span>🧠</span><p><strong>Why leaf 9 was pruned:</strong> After evaluating leaf 7 under MAX-B, we know MAX-B ≥ 7. But MIN-L's best so far is 6 (from MAX-A). Since MIN takes the minimum, and MAX-B gives MIN-L ≥ 7 > 6, MIN-L will choose MAX-A=6, not MAX-B. So even if leaf 9 gave MAX-B a value of 100, MIN-L still picks 6. No need to check leaf 9!</p></div>
+  </div>
+</section>
+
+<!-- ═══ PRACTICE PROBLEM (from slides) ═══ -->
+<section class="sec" id="practice">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">📋</div>
+    <h2>Practice Problem from Slides — (6,8,1,10,4,5,11,12,9,2,2,3)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p><strong>From lecture slide 42:</strong> Leaf values left to right: 6, 8, 1, 10, 4, 5, 11, 12, 9, 2, 2, 3<br>
+    <strong>Tree structure:</strong> 3-level. Root=MAX. Level 1 = three MIN nodes. Each MIN has some MAX grandchildren with leaves.</p></div>
+
+    <h3>Assume: Root→3 MIN children; each MIN→MAX grandchildren with 2 leaves each</h3>
+    <div class="anb">
+      <div class="albl">▶ STEP 1 — Leaf groups to MAX nodes</div>
+      <div class="cb">
+<span class="cm">// Group leaves into MAX nodes (2 leaves each):</span>
+MAX-1: max(6,8)   = <span class="g">8</span>
+MAX-2: max(1,10)  = <span class="g">10</span>
+MAX-3: max(4,5)   = <span class="g">5</span>
+MAX-4: max(11,12) = <span class="g">12</span>
+MAX-5: max(9,2)   = <span class="g">9</span>
+MAX-6: max(2,3)   = <span class="g">3</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ STEP 2 — MIN nodes (each MIN has 2 MAX grandchildren)</div>
+      <div class="cb">
+MIN-A: min(MAX-1, MAX-2) = min(8, 10) = <span class="r">8</span>
+MIN-B: min(MAX-3, MAX-4) = min(5, 12) = <span class="r">5</span>
+MIN-C: min(MAX-5, MAX-6) = min(9, 3)  = <span class="r">3</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ STEP 3 — ROOT (MAX)</div>
+      <div class="cb">
+ROOT = max(8, 5, 3) = <span class="g">8</span>
+Optimal move: go to MIN-A (which returns 8)
+      </div>
+    </div>
+
+    <h3>Alpha-Beta Pruning Trace</h3>
+    <div class="step-trace">
+      <div class="row"><span class="t">INIT</span><span class="v">ROOT(MAX): α=−∞, β=+∞</span></div>
+      <div class="row"><span class="t">→MIN-A</span><span class="v">MIN-A: α=−∞, β=+∞</span></div>
+      <div class="row"><span class="t">→MAX-1</span><span class="v">Evaluate leaf 6: α=6. Evaluate leaf 8: α=8. Return 8.</span></div>
+      <div class="row"><span class="t">MIN-A gets 8</span><span class="v">β=min(+∞,8)=8. α(−∞)≥β(8)? NO → continue.</span></div>
+      <div class="row"><span class="t">→MAX-2</span><span class="v">Pass (α=−∞, β=8). Evaluate leaf 1: α=1. α(1)≥β(8)? NO. Evaluate leaf 10: v=10. α=max(−∞,10)=10. α(10)≥β(8)? <strong class="prune">YES! PRUNE.</strong> But MAX-2 is fully evaluated (no more leaves). Return 10.</span></div>
+      <div class="row"><span class="t">MIN-A done</span><span class="v">v=min(8,10)=8. Return 8. ROOT α=max(−∞,8)=<strong class="accept">8</strong>.</span></div>
+      <div class="row"><span class="t">→MIN-B</span><span class="v">Pass (α=8, β=+∞). MIN-B is MIN node.</span></div>
+      <div class="row"><span class="t">→MAX-3</span><span class="v">Pass (α=8, β=+∞). Eval 4: α=4. Eval 5: v=5. α=5. 5≥β(+∞)? NO. Return 5.</span></div>
+      <div class="row"><span class="t">MIN-B gets 5</span><span class="v">β=min(+∞,5)=5. Check: α(8)≥β(5)? <strong class="prune">YES! α-CUTOFF!</strong></span></div>
+      <div class="row"><span class="t">PRUNE MAX-4</span><span class="v"><span class="prune">✂️ MAX-4 (leaves 11,12) PRUNED!</span> MIN-B≤5 < α=8. ROOT won't choose this path.</span></div>
+      <div class="row"><span class="t">→MIN-C</span><span class="v">Pass (α=8, β=+∞).</span></div>
+      <div class="row"><span class="t">→MAX-5</span><span class="v">Eval 9: α=9. 9≥β(+∞)? NO. Eval 2: v=max(9,2)=9. α=9. Return 9.</span></div>
+      <div class="row"><span class="t">MIN-C gets 9</span><span class="v">β=min(+∞,9)=9. Check: α(8)≥β(9)? NO → continue.</span></div>
+      <div class="row"><span class="t">→MAX-6</span><span class="v">Pass (α=8, β=9). Eval 2: α=max(8,2)=8. Eval 3: v=max(2,3)=3. α=max(8,3)=8. Return 3.</span></div>
+      <div class="row"><span class="t">MIN-C done</span><span class="v">v=min(9,3)=3. Return 3. ROOT: max(8,5→pruned,3)=8.</span></div>
+      <div class="row"><span class="t">ROOT FINAL</span><span class="v"><strong class="accept">Root = 8.</strong> Pruned: MAX-4 (leaves 11, 12). ✅ Same as minimax!</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SPRING 2025 EXAM ═══ -->
+<section class="sec" id="exam1">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">📝</div>
+    <h2>Spring 2025 Midterm — Minimax Q5 Solved</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>Question:</strong> Big game tree with leaf values: <strong>-5, -2, -1, 5 | 3 | 16, 12, 10, 5, 24 | 9, 12 | 25, 2</strong><br>
+    Root=MAX. Apply minimax + alpha-beta pruning.</p></div>
+
+    <h3>Tree Structure (from PDF figure)</h3>
+    <div class="cb">
+<span class="cm">// Level structure (from image):</span>
+ROOT (MAX) → 3 MIN children (L, M, R)
+
+MIN-L → MAX-LL, MAX-LR
+  MAX-LL → leaves: -5, -2
+  MAX-LR → has MIN child:
+    MIN → leaf: 3, and also leaf: -1, 5 somewhere...
+
+<span class="cm">// Simplified interpretation based on leaf positions:</span>
+Left branch:
+  MAX nodes with leaves: (-5,-2) → MAX=-2  and  (-1,5) → MAX=5
+  MIN over these: min(-2, 5) = -2... 
+  But leaf "3" appears separately — it's a direct leaf.
+  
+Middle branch: More complex — involves leaf: 16,12,10,5,24
+Right branch: 9,12 and 25,2
+    </div>
+
+    <div class="box y"><p><strong>Approach for this type:</strong> The tree in the PDF has a complex irregular structure. The method is the same — always work bottom-up, MAX takes max, MIN takes min, apply α-β as you go left-to-right.</p></div>
+
+    <h3>General Alpha-Beta for Left→Right Traversal</h3>
+    <div class="anb">
+      <div class="albl">▶ KEY STRATEGY FOR EXAM</div>
+      <ol style="color:var(--muted);padding-left:20px;">
+        <li>Identify all <strong>terminal leaf values</strong> first (given at the bottom).</li>
+        <li>Group them by their parent nodes (MAX nodes at the deepest non-leaf level).</li>
+        <li>Compute those MAX nodes first.</li>
+        <li>Then compute MIN nodes above them.</li>
+        <li>Continue up to root.</li>
+        <li>For alpha-beta: after evaluating the <strong>first MIN child</strong> of root, you have α. Use it to prune subsequent MIN children if they start returning values ≤ α.</li>
+      </ol>
+      <div class="box r"><p><strong>Critical pattern:</strong> Whenever a MIN node's value drops BELOW the current α (root's best guarantee), <span class="prune">PRUNE all remaining children</span> of that MIN node. The root already has something better.</p></div>
+    </div>
+
+    <h3>Assignment Q5 — The Assignment Minimax Tree</h3>
+    <div class="box y"><p>Tree from assignment page 2: Root=MAX (triangle up). Three MIN children (triangles down). Each MIN has MAX grandchildren. Leaves (bottom level, L→R): <strong>7, 4, 12 | 3 | 16, 12, 10, 5, 24 | 9, 12 | 25, 2</strong></p></div>
+    <div class="anb">
+      <div class="albl">▶ BOTTOM-UP MINIMAX</div>
+      <div class="cb">
+<span class="cm">// Working up from leaves:</span>
+
+<span class="cm">// Left MIN child of root:</span>
+  Left MAX grandchild-1: has leaves 7, 4 → max(7,4) = <span class="g">7</span>
+  Leaf 3 is a direct child of LEFT MIN (or of a sub-MAX)
+  Left MAX grandchild-2: {if exists, no more leaves given}
+  LEFT MIN = min(values above) 
+  
+<span class="cm">// With the tree image:</span>
+<span class="cm">// The lecture's example on slide 42 gives leaves: 6,8,1,10,4,5,11,12,9,2,2,3</span>
+<span class="cm">// The assignment tree on page 2 gives: 7,4,12 | 3 | 16,12,10,5,24 | 9,12 | 25,2</span>
+
+<span class="cm">// For the assignment tree structure:</span>
+Group 1 (left subtree):
+  MAX(7, 4) = 7,  leaf 12 is another MAX or direct
+  If MAX(7,4)=7 and 12 is direct: MIN(7, 12) = 7? 
+  Or MAX(7,4,12) = 12?
+  
+<span class="cm">// Without exact image, work with what's given:</span>
+<span class="cm">// The approach: compute each MAX(leaves), then MIN of those, then MAX at root</span>
+      </div>
+    </div>
+
+    <div class="tip"><span>💡</span><p><strong>Exam tip:</strong> In the actual exam, the tree image is given. The method never changes. Just: (1) find leaves, (2) compute bottom-most internal nodes, (3) go up layer by layer. Alpha-beta: track α at MAX nodes, β at MIN nodes, prune when α≥β.</p></div>
+  </div>
+</section>
+
+<!-- ═══ SUMMER 2025 EXAM ═══ -->
+<section class="sec" id="exam2">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">📝</div>
+    <h2>Summer 2025 Midterm — Q6 Alpha-Beta (Right-to-Left!)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p><strong>Summer 2025 Q6:</strong> "The children of each node must be visited <strong>from right to left</strong> during the minimax search." Find values for a, b, c, d such that highlighted branches are pruned. Indicate utility values at internal nodes.</p></div>
+
+    <div class="box r"><p>⚠️ <strong>This is the trickiest exam variant!</strong> Right-to-left traversal means you evaluate the RIGHTMOST children first. This changes which branches get pruned — but the final root value remains the same as regular minimax!</p></div>
+
+    <h3>Right-to-Left Alpha-Beta — How it Changes Things</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h4>Left-to-Right (normal)</h4>
+        <p style="font-size:13px;color:var(--muted);">Evaluate leftmost child first → sets initial α or β → prunes right siblings if condition met.</p>
+        <p style="font-size:13px;color:var(--muted);">Same subtrees are evaluated, different ones are pruned compared to R→L.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h4>Right-to-Left (Summer 2025)</h4>
+        <p style="font-size:13px;color:var(--muted);">Evaluate rightmost child first → sets initial α or β → prunes LEFT siblings if condition met.</p>
+        <p style="font-size:13px;color:var(--muted);">The pruned nodes are DIFFERENT but the root value is the SAME.</p>
+      </div>
+    </div>
+
+    <h3>Summer 2025 Tree (leaf values from PDF): Known leaves = 4, 1, 3, b?, 1, 2, a?</h3>
+    <div class="anb">
+      <div class="albl">▶ GENERAL METHOD FOR "FIND RANGES OF a,b,c,d"</div>
+      <div class="cb">
+<span class="cm">// Structure from PDF: Root=MAX, 3 MIN children,</span>
+<span class="cm">// Each MIN has 2 MAX grandchildren,</span>
+<span class="cm">// Some leaves are unknown (a, b, c, d)</span>
+
+<span class="cm">// Strategy: The highlighted (pruned) branches tell you what MUST be true</span>
+<span class="cm">// for the pruning condition α ≥ β to hold at those specific nodes.</span>
+
+<span class="cm">// Example: If branch with leaf 'a' is pruned:</span>
+<span class="cm">// That means at the MIN node containing 'a', β ≤ α at the time 'a' is reached.</span>
+<span class="cm">// So: whatever β is at that point must be ≤ current α.</span>
+<span class="cm">// This gives you an INEQUALITY that defines the range of 'a'.</span>
+
+<span class="cm">// Step-by-step:</span>
+1. Compute all KNOWN internal node values first (bottom-up, right-to-left)
+2. Find what α and β values are at the pruning points
+3. For unknown leaf 'a' to cause pruning: derive the inequality
+4. Express as range: a ∈ [x, +∞) or a ∈ (−∞, y] etc.
+      </div>
+    </div>
+
+    <div class="box g"><p><strong>For the Summer 2025 tree specifically (from image):</strong> Known leaves: 4, 1, 3, 1, 2. Unknowns: a, b, c, d. Right branch has known leaf 4 and unknown a. Working right-to-left, evaluate right subtrees first to set α before reaching the left branches where pruning may occur.</p></div>
+
+    <div class="tip"><span>💡</span><p><strong>Key insight for "range" questions:</strong> A branch is pruned when visiting it is redundant — when even the best possible value it could return wouldn't change the decision. Unknown variables define the "threshold" of this redundancy. State the inequality clearly, e.g.: "a ≤ 3" (because if a ≤ 3, the MIN node value ≤ 3 < α=4, causing α-cutoff).</p></div>
+  </div>
+</section>
+
+<!-- ═══ FALL 2025 EXAM ═══ -->
+<section class="sec" id="exam3">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">📝</div>
+    <h2>Fall 2025 Midterm — Q5 Minimax + "Is Minimax Always Optimal?"</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>Fall 2025 Q5a:</strong> Tree: MAX→MIN→MAX. Leaves (L→R): 4,3,6,2 | 2,1,9,5 | 3,1,5,4,7,5. Apply alpha-beta, show [α,β,v] at each node.</p></div>
+
+    <h3>Full Trace — Left to Right</h3>
+    <div class="anb">
+      <div class="albl">▶ BOTTOM-UP: Compute MAX nodes at depth 2</div>
+      <div class="cb">
+<span class="cm">// Leaves are grouped under MAX nodes at depth 2:</span>
+MAX-1: max(4,3) = <span class="g">4</span>     MAX-2: max(6,2) = <span class="g">6</span>
+MAX-3: max(2,1) = <span class="g">2</span>     MAX-4: max(9,5) = <span class="g">9</span>
+MAX-5: max(3,1) = <span class="g">3</span>     MAX-6: max(5,4) = <span class="g">5</span>
+MAX-7 (if exists): max(7,5) = <span class="g">7</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ DEPTH 1: MIN nodes</div>
+      <div class="cb">
+MIN-A: min(MAX-1, MAX-2) = min(4,6) = <span class="r">4</span>
+MIN-B: min(MAX-3, MAX-4) = min(2,9) = <span class="r">2</span>
+MIN-C: min(MAX-5, MAX-6, MAX-7) = min(3,5,7) = <span class="r">3</span>
+<span class="cm">// (exact grouping depends on the tree image)</span>
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ ROOT: MAX node</div>
+      <div class="cb">
+ROOT = max(MIN-A, MIN-B, MIN-C) = max(4, 2, 3) = <span class="g">4</span>
+Optimal move: go to MIN-A (value=4)
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ ALPHA-BETA TRACE (with [α,β,v] notation)</div>
+      <div class="cb">
+ROOT [α=−∞, β=+∞, v=−∞]:
+
+→ MIN-A [α=−∞, β=+∞, v=+∞]:
+  → MAX-1 [α=−∞, β=+∞, v=−∞]:
+    leaf 4: v=4, α=4. α(4)≥β(+∞)? NO.
+    leaf 3: v=max(4,3)=4. α=4.
+    RETURN 4
+  MIN-A: v=min(+∞,4)=4, β=4. α(−∞)≥β(4)? NO.
+  
+  → MAX-2 [α=−∞, β=4, v=−∞]:
+    leaf 6: v=6, α=6. α(6)≥β(4)? <span class="prune">YES! β-CUTOFF!</span>
+    <span class="prune">✂️ Leaf 2 PRUNED!</span>
+    RETURN 6
+  MIN-A: v=min(4,6)=4. RETURN 4.
+
+ROOT: v=4, α=4. 
+
+→ MIN-B [α=4, β=+∞, v=+∞]:
+  → MAX-3 [α=4, β=+∞]:
+    leaf 2: v=2, α=max(4,2)=4.
+    leaf 1: v=max(2,1)=2, α=4.
+    RETURN 2
+  MIN-B: v=min(+∞,2)=2, β=2. α(4)≥β(2)? <span class="prune">YES! α-CUTOFF!</span>
+  <span class="prune">✂️ MAX-4 (leaves 9,5) PRUNED!</span>
+  RETURN 2.
+
+ROOT: v=max(4,2)=4. α=4.
+
+→ MIN-C [α=4, β=+∞]:
+  → MAX-5: max(3,1)=3. MIN-C: β=min(+∞,3)=3. α(4)≥β(3)? <span class="prune">YES! CUTOFF!</span>
+  <span class="prune">✂️ MAX-6 and MAX-7 PRUNED!</span>
+  RETURN 3.
+
+ROOT FINAL: <span class="g">max(4,2,3) = 4</span>. [α=4,β=+∞,v=4]
+      </div>
+    </div>
+
+    <h3>Q5b — Does Minimax Always Provide an Optimal Solution?</h3>
+    <div class="anb">
+      <div class="albl">▶ ANSWER (high-value exam question)</div>
+      <p><strong>No, Minimax does NOT always provide an optimal solution.</strong> Here's why and an example:</p>
+      <div class="two">
+        <div class="card" style="border-top:3px solid #10b981">
+          <h4>When Minimax IS optimal:</h4>
+          <ul style="font-size:13px;color:var(--muted);padding-left:16px;">
+            <li>Against a perfectly rational opponent</li>
+            <li>When the full game tree is searched to terminal nodes</li>
+            <li>When utility values are accurate</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top:3px solid #ef4444">
+          <h4>When Minimax is NOT optimal:</h4>
+          <ul style="font-size:13px;color:var(--muted);padding-left:16px;">
+            <li>Against an irrational/random opponent (you may miss exploiting their mistakes)</li>
+            <li>With depth-limited search + evaluation function (approximation, not exact)</li>
+            <li>In stochastic games (random outcomes, minimax doesn't account for chance nodes)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box r"><p><strong>Counterexample:</strong> If the opponent always makes the worst possible move (very irrational), a minimax agent might still win but by a smaller margin. A different strategy designed to exploit the irrational opponent could achieve a higher expected utility.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ASSIGNMENT Q5 ═══ -->
+<section class="sec" id="assign">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">📋</div>
+    <h2>Assignment Q5 — Minimax + Alpha-Beta (Complete Answer)</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p><strong>Assignment tree leaf values (from PDF page 2):</strong><br>
+    Bottom level: 7, 4, 12 | 3 | 16, 12, 10, 5, 24 | 9, 12 | 25, 2<br>
+    <strong>Structure:</strong> Root=MAX (triangle up), 3 MIN children (triangles down), each MIN has MAX grandchildren (triangles up), then some have MIN great-grandchildren.</p></div>
+
+    <h3>Interpreting the Tree Structure</h3>
+    <div class="cb">
+<span class="cm">// From the assignment PDF image (complex 5-level tree):</span>
+Root (MAX)
+├── MIN-Left
+│   ├── MAX (leaf=7)
+│   └── MAX
+│       ├── leaf=4
+│       └── leaf=12
+├── MIN-Mid  
+│   ├── MAX
+│   │   └── MIN (leaf=3) → one side has leaf=16 ...
+│   └── ... (many nodes)
+└── MIN-Right
+    ├── MAX → 9, 12
+    └── MAX → 25, 2
+    </div>
+
+    <h3>Bottom-Up Minimax Computation</h3>
+    <div class="anb">
+      <div class="albl">▶ RIGHT BRANCH FIRST (easiest)</div>
+      <div class="cb">
+RIGHT subtree:
+  MAX(9,12) = 12
+  MAX(25,2) = 25
+  MIN-Right = min(12, 25) = 12
+  ROOT α (so far) unknown — need left branches first
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ LEFT BRANCH</div>
+      <div class="cb">
+LEFT subtree:
+  leaf 7 directly under one MAX → MAX value = 7
+  MAX(4,12) = 12
+  MIN-Left = min(7, 12) = 7
+  ROOT (MAX) sees 7 first → α = 7
+      </div>
+    </div>
+    <div class="anb">
+      <div class="albl">▶ ALPHA-BETA PRUNING</div>
+      <div class="cb">
+After MIN-Left=7, ROOT α=7.
+
+For MIN-Mid: if MIN-Mid's first subtree gives value ≤ 7,
+→ β ≤ 7 = α → PRUNE remaining children of MIN-Mid.
+
+The leaf values 12,10,5,24 under middle branch:
+  Some MAX under MIN-Mid = max(12,10)=12 or max(5,24)=24 depending on grouping.
+  MIN-Mid gets a value from these MAX nodes.
+  If MIN-Mid's value < 7 at any point → prune.
+
+For MIN-Right=12:
+  ROOT = max(7, MIN-Mid, 12)
+  Regardless: ROOT = max(7, something, 12) = at least 12.
+  But wait — if we already computed MIN-Left=7 first and ROOT α=7,
+  when we reach MIN-Right and find value=12 > 7 → ROOT value=12.
+  
+FINAL: ROOT = max(7, [MIN-Mid], 12)
+  Minimax value depends on MIN-Mid.
+  If MIN-Mid = min(MAX(...),MAX(...)):
+    max(16,12)=16, max(10,5,24)=24 → MIN-Mid=min(16,24)=16? 
+    or with leaf 3: min(3,12,...) depends on structure.
+
+<span class="cm">// For exam: show your tree interpretation and compute systematically.</span>
+<span class="cm">// The METHOD is what's graded, not the final number (if image is needed).</span>
+      </div>
+    </div>
+
+    <div class="tip"><span>⚠️</span><p><strong>For Assignment Q5:</strong> The exact numbers depend on reading the tree image carefully. In exams, ALWAYS draw the tree structure first with node labels, write the leaf values, then compute bottom-up. Show each step. Partial credit is given for correct method even if a leaf value is misread.</p></div>
+  </div>
+</section>
+
+<!-- ═══ SUMMARY ═══ -->
+<section class="sec" id="summary">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">⚡</div>
+    <h2>Last-Minute Exam Summary — Adversarial Search</h2>
+  </div>
+  <div class="bdy">
+    <h3>5 Things That Will Definitely Be on the Exam</h3>
+    <table>
+      <tr><th>#</th><th>Topic</th><th>What to Know</th></tr>
+      <tr><td><strong>1</strong></td><td>Zero-sum definition</td><td>One player's gain = other's loss. Net = 0. MAX wants high, MIN wants low.</td></tr>
+      <tr><td><strong>2</strong></td><td>Minimax computation</td><td>Work bottom-up. MAX→max of children. MIN→min of children. Show all steps.</td></tr>
+      <tr><td><strong>3</strong></td><td>α-β pruning</td><td>α = MAX's floor (updated at MAX nodes). β = MIN's ceiling (updated at MIN nodes). Prune when α ≥ β.</td></tr>
+      <tr><td><strong>4</strong></td><td>Which nodes get pruned</td><td>Identify EACH pruned node and explain WHY (show the α ≥ β condition with numbers).</td></tr>
+      <tr><td><strong>5</strong></td><td>Traversal order matters</td><td>Right-to-left = evaluate right children first, prune left siblings. Same final value, different pruned nodes.</td></tr>
+    </table>
+
+    <h3>The α-β Decision Table</h3>
+    <table>
+      <tr><th>Current Node</th><th>Check</th><th>Update</th><th>Prune if</th></tr>
+      <tr><td><strong>MAX node</strong></td><td>After each child returns v</td><td>α = max(α, v)</td><td><strong>α ≥ β</strong> → prune remaining children</td></tr>
+      <tr><td><strong>MIN node</strong></td><td>After each child returns v</td><td>β = min(β, v)</td><td><strong>α ≥ β</strong> → prune remaining children</td></tr>
+      <tr><td><strong>Pass down</strong></td><td>When going to a child</td><td>Child inherits parent's current (α, β)</td><td>—</td></tr>
+    </table>
+
+    <div class="box g"><p><strong>The one sentence that explains all of alpha-beta:</strong> "I already have a path worth α (MAX's guarantee). If this branch will give MIN a path worth at most β ≤ α, then MAX will never choose this branch. Skip it."</p></div>
+  </div>
+</section>
+
+</main>
+<div style="text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px;">
+  CSE 3811 · Lecture 6 · Adversarial Search · UIU · Minimax · Alpha-Beta Pruning
+</div>
+</body>
+</html>

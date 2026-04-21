@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 2 — Search Problems · BFS · DFS · DLS · IDS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#0a0e1a,#0d1b2e);border-bottom:2px solid var(--accent3);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(124,58,237,.12),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(124,58,237,.15);border:1px solid var(--accent3);color:var(--accent3);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,46px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--accent3);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--accent3);border-color:var(--accent3);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent3);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}
+  li strong{color:var(--text);}
+  .box{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-left:4px solid var(--accent3);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.b{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.2);border-left-color:var(--accent);}
+  .box.g{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);border-left-color:var(--accent4);}
+  .box.o{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.2);border-left-color:var(--accent2);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(124,58,237,.1);color:var(--accent3);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}
+  .tip p{margin:0;color:var(--hi);font-size:13px;}
+  .algo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0;}
+  .ac{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;}
+  .ac::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .bfs::before{background:var(--accent);}
+  .dfs::before{background:var(--accent2);}
+  .dls::before{background:var(--accent3);}
+  .ids::before{background:var(--accent4);}
+  .ac h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;}
+  .ac p{font-size:13px;margin-bottom:6px;}
+  .tag{display:inline-block;font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:10px;border:1px solid;margin:1px;}
+  .tag.yes{color:var(--accent4);border-color:var(--accent4);background:rgba(16,185,129,.08);}
+  .tag.no{color:#ef4444;border-color:#ef4444;background:rgba(239,68,68,.08);}
+  .tag.cond{color:var(--accent5);border-color:var(--accent5);background:rgba(245,158,11,.08);}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(124,58,237,.1);color:#c084fc;padding:2px 6px;border-radius:4px;font-size:12px;}
+  .cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#e2e8f0;overflow-x:auto;line-height:1.8;}
+  .cb .c{color:#6b7280;}
+  .cb .k{color:#c084fc;}
+  .cb .g{color:#86efac;}
+  .cb .n{color:#67e8f9;}
+  .steps{margin:10px 0;}
+  .step{display:flex;gap:12px;margin-bottom:8px;align-items:flex-start;}
+  .sn{width:24px;height:24px;border-radius:50%;background:var(--accent3);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .step p{margin:0;color:var(--muted);font-size:14px;}
+  .formula{background:#0d1117;border:1px solid var(--accent3);border-radius:8px;padding:12px 16px;margin:10px 0;font-family:'IBM Plex Mono',monospace;color:#c084fc;font-size:14px;text-align:center;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .anb{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:16px 18px;margin:10px 0;}
+  .albl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent4);margin-bottom:8px;}
+  @media(max-width:580px){.algo-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">LECTURE 2 · SEARCH ALGORITHMS</div>
+  <h1>Search Problems<br><span>BFS · DFS · DLS · IDS</span></h1>
+  <p>// State Space · Search Trees · Complexity Analysis · When to Use Each Algorithm</p>
+</header>
+<nav>
+  <a href="#concept">Core Concepts</a>
+  <a href="#graph-vs-tree">Graph vs Tree</a>
+  <a href="#props">4 Properties</a>
+  <a href="#bfs">BFS</a>
+  <a href="#dfs">DFS</a>
+  <a href="#dls">DLS</a>
+  <a href="#ids">IDS</a>
+  <a href="#compare">Comparison</a>
+  <a href="#solved">Solved Problems</a>
+</nav>
+<main>
+
+<!-- CORE CONCEPTS -->
+<section class="sec" id="concept">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">🗺️</div>
+    <h2>What is a Search Problem?</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>A search problem</strong> consists of a state space, a successor function (with actions and costs), a start state, and a goal test. A <strong>solution</strong> is a sequence of actions (a plan) which transforms the start state to a goal state.</p></div>
+    <h3>Why Do We Need Search?</h3>
+    <p>Many AI problems can't be solved directly with a formula. Instead, the agent must <strong>explore possible sequences of actions</strong> to find one that achieves the goal. Search is the backbone of classical AI problem solving.</p>
+    <h3>Pacman Example (From Your Notes — Class 3)</h3>
+    <div class="box b"><p>Pacman navigating a maze is a classic search problem:</p></div>
+    <table>
+      <tr><th>Component</th><th>Pacman Problem: Find Path</th><th>Pacman Problem: Eat All Dots</th></tr>
+      <tr><td><strong>States</strong></td><td>(x, y) location on grid</td><td>{(x,y), dot booleans} — position + which dots remain</td></tr>
+      <tr><td><strong>Actions</strong></td><td>North, South, East, West</td><td>North, South, East, West</td></tr>
+      <tr><td><strong>Successor</strong></td><td>Update location only</td><td>Update location + possibly remove a dot</td></tr>
+      <tr><td><strong>Goal Test</strong></td><td>Is (x,y) = END?</td><td>Are all dots eaten (all booleans false)?</td></tr>
+    </table>
+    <div class="tip"><span>💡</span><p><strong>Key insight:</strong> The "world state" includes every detail of the environment. A "search state" keeps only what's needed for planning — we abstract away irrelevant details.</p></div>
+  </div>
+</section>
+
+<!-- STATE SPACE GRAPH VS SEARCH TREE -->
+<section class="sec" id="graph-vs-tree">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🌳</div>
+    <h2>State Space Graph vs Search Tree</h2>
+  </div>
+  <div class="bdy">
+    <div class="algo-grid">
+      <div class="ac bfs" style="border-top-color:var(--accent)">
+        <h4>📊 State Space Graph</h4>
+        <p>A mathematical map of the entire problem. Each <strong>state appears exactly ONCE</strong>. Nodes = world configurations. Edges = possible actions (transitions).</p>
+        <p style="color:var(--hi);font-size:12px;">Cannot always build this in memory — too large! But it's a useful conceptual tool.</p>
+      </div>
+      <div class="ac dfs" style="border-top-color:var(--accent2)">
+        <h4>🌲 Search Tree</h4>
+        <p>A "what if" tree of plans. The start state is the root. Children correspond to successors. <strong>A state can appear MULTIPLE times</strong> (via different paths). Nodes represent plans, not just states.</p>
+        <p style="color:var(--hi);font-size:12px;">From your notes: "Infinite graph" — the tree can be infinite even if the graph is finite!</p>
+      </div>
+    </div>
+    <div class="box"><p><strong>Why does this matter?</strong> When doing graph search vs tree search: <strong>Graph Search</strong> keeps a "closed/visited" set — never expands the same state twice. <strong>Tree Search</strong> may revisit states (no closed set) — can loop infinitely but simpler.</p></div>
+    <h3>From Your Handwritten Notes (Class 3)</h3>
+    <div class="cb">
+<span class="c">// Example: Graph with 4 nodes: S, a, b, G</span>
+<span class="c">// S connects to a and b; both a and b connect to G</span>
+
+State Space Graph:       Search Tree (infinite!):
+   S                            S
+  / \                         /   \
+ a   b                       a     b
+  \ /                       /\    /\
+   G                       b  G  a  G
+                           ...repeated forever
+    </div>
+    <div class="tip"><span>🧠</span><p><strong>Tree Search vs Graph Search:</strong> Tree search allows repeated states (simple but may loop). Graph search uses a visited/closed set to avoid repeating states (more efficient, avoids loops).</p></div>
+  </div>
+</section>
+
+<!-- 4 PROPERTIES -->
+<section class="sec" id="props">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">⚖️</div>
+    <h2>4 Search Algorithm Properties</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p>Every search algorithm is evaluated on these 4 criteria. Know them by heart — they appear in every exam!</p></div>
+    <div class="box b"><p><strong>Variables:</strong> <code>b</code> = branching factor (average children per node), <code>m</code> = maximum depth of tree, <code>s</code> = depth of shallowest solution, <code>L</code> = depth limit for DLS.</p></div>
+    <table>
+      <tr><th>Property</th><th>Question It Answers</th><th>Details</th></tr>
+      <tr><td><strong>Completeness</strong></td><td>"Will it ALWAYS find a solution if one exists?"</td><td>If yes → guaranteed to find goal. If no → might miss it or loop forever.</td></tr>
+      <tr><td><strong>Optimality</strong></td><td>"Will it find the BEST (cheapest) solution?"</td><td>If yes → returns minimum cost path. If no → might find any path, not the best.</td></tr>
+      <tr><td><strong>Time Complexity</strong></td><td>"How many nodes are explored?"</td><td>Big-O notation. Smaller = faster algorithm.</td></tr>
+      <tr><td><strong>Space Complexity</strong></td><td>"How much memory is used?"</td><td>How many nodes stored simultaneously. Smaller = less memory needed.</td></tr>
+    </table>
+    <div class="tip"><span>⚠️</span><p><strong>Optimality vs Completeness:</strong> An algorithm can be complete but not optimal (finds A solution, but not the best). Optimality requires BOTH finding a solution AND it being cheapest.</p></div>
+  </div>
+</section>
+
+<!-- BFS -->
+<section class="sec" id="bfs">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🌊</div>
+    <h2>BFS — Breadth-First Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box b"><p><strong>Core Idea:</strong> Explore the search tree <strong>level by level</strong>. First check all nodes at depth 1, then all at depth 2, etc. Like spreading water — it floods outward uniformly.</p></div>
+    <div class="box b"><p><strong>Data Structure:</strong> <code>Queue (FIFO)</code> — First In, First Out. Newly discovered nodes go to the BACK of the queue.</p></div>
+    <h3>How BFS Works Step by Step</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><p>Add the start node to the Queue with cost 0</p></div>
+      <div class="step"><div class="sn">2</div><p>Take the FRONT node from the Queue (oldest node)</p></div>
+      <div class="step"><div class="sn">3</div><p>Check: Is it the goal? If YES → done! If NO → continue</p></div>
+      <div class="step"><div class="sn">4</div><p>Add all unvisited children/neighbours to the BACK of the Queue</p></div>
+      <div class="step"><div class="sn">5</div><p>Mark current node as visited</p></div>
+      <div class="step"><div class="sn">6</div><p>Repeat from step 2 until queue is empty or goal found</p></div>
+    </div>
+    <h3>BFS Properties</h3>
+    <div class="algo-grid">
+      <div class="ac bfs">
+        <h4>Completeness</h4>
+        <p><span class="tag yes">✓ YES</span> — Will always find a solution if one exists (assuming finite branching factor b).</p>
+      </div>
+      <div class="ac bfs">
+        <h4>Optimality</h4>
+        <p><span class="tag cond">CONDITIONAL</span> — Optimal ONLY when all step costs are <strong>equal (e.g., all = 1)</strong>. If costs differ, use UCS instead!</p>
+      </div>
+      <div class="ac bfs">
+        <h4>Time Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b<sup>s</sup>)</div>
+        <p>Where s = depth of shallowest solution. Explores all nodes up to depth s.</p>
+      </div>
+      <div class="ac bfs">
+        <h4>Space Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b<sup>s</sup>)</div>
+        <p style="color:#ef4444;">🔴 HIGH! Must store entire frontier. The biggest weakness of BFS.</p>
+      </div>
+    </div>
+    <h3>BFS Visualisation — 3-Level Tree (b=2)</h3>
+    <div class="cb">
+<span class="c">// BFS explores level by level:</span>
+Level 0:        [A]                     ← expand A
+Level 1:     [B, C]                     ← expand B, then C
+Level 2:  [D, E, F, G]                 ← expand D, E, F, G
+                                                       ↑
+                          Goal found here! (cost = 2 steps)
+
+Queue at each step:
+Init:  [A]
+→ Pop A: add B,C → Queue: [B, C]
+→ Pop B: add D,E → Queue: [C, D, E]
+→ Pop C: add F,G → Queue: [D, E, F, G]
+→ Pop D: not goal → ...
+→ Pop E: not goal → ...
+→ Pop F: GOAL! → done!
+    </div>
+    <div class="tip"><span>💡</span><p><strong>BFS use case:</strong> When you need the solution with the <strong>fewest steps</strong> (or when all costs are equal). Great for: word ladders, shortest path in unweighted graphs, maze with equal step costs.</p></div>
+    <h3>BFS vs DFS — When to Prefer Which?</h3>
+    <table>
+      <tr><th>Scenario</th><th>BFS Better?</th><th>DFS Better?</th></tr>
+      <tr><td>Finding shortest path (equal cost)</td><td style="color:var(--accent4)">✓ Yes</td><td>✗ No</td></tr>
+      <tr><td>Shallow and wide search space</td><td style="color:var(--accent4)">✓ Yes</td><td>✗ No</td></tr>
+      <tr><td>Memory is very limited</td><td>✗ No</td><td style="color:var(--accent4)">✓ Yes</td></tr>
+      <tr><td>Deep and narrow tree</td><td>✗ No (too slow)</td><td style="color:var(--accent4)">✓ Yes</td></tr>
+      <tr><td>Solving a maze</td><td>✗ Overkill</td><td style="color:var(--accent4)">✓ Yes — natural fit</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- DFS -->
+<section class="sec" id="dfs">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🕳️</div>
+    <h2>DFS — Depth-First Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p><strong>Core Idea:</strong> Explore as <strong>deep as possible</strong> down one path before backtracking. Like exploring a cave — go as far as you can, then come back and try another tunnel.</p></div>
+    <div class="box o"><p><strong>Data Structure:</strong> <code>Stack (LIFO)</code> — Last In, First Out. Newly discovered nodes go to the TOP of the stack.</p></div>
+    <h3>How DFS Works Step by Step</h3>
+    <div class="steps">
+      <div class="step"><div class="sn" style="background:var(--accent2)">1</div><p>Push start node onto the Stack</p></div>
+      <div class="step"><div class="sn" style="background:var(--accent2)">2</div><p>Pop the TOP node from the Stack (most recently added)</p></div>
+      <div class="step"><div class="sn" style="background:var(--accent2)">3</div><p>Check: Is it the goal? If YES → done! Return path.</p></div>
+      <div class="step"><div class="sn" style="background:var(--accent2)">4</div><p>Push all unvisited children to the TOP of the Stack</p></div>
+      <div class="step"><div class="sn" style="background:var(--accent2)">5</div><p>Repeat from step 2 (goes DEEP because newest is always popped)</p></div>
+    </div>
+    <h3>DFS Properties</h3>
+    <div class="algo-grid">
+      <div class="ac dfs">
+        <h4>Completeness</h4>
+        <p><span class="tag no">✗ NO (infinite spaces)</span> — Can get stuck going down an infinite path forever! <span class="tag cond">COMPLETE on finite trees</span></p>
+        <p style="font-size:12px;">Your notes: "DFS is complete if there is no cycle."</p>
+      </div>
+      <div class="ac dfs">
+        <h4>Optimality</h4>
+        <p><span class="tag no">✗ NO</span> — May find a solution that is NOT the cheapest. Finds the leftmost deep solution, not the best.</p>
+        <p style="font-size:12px;">Your notes: "No optimal."</p>
+      </div>
+      <div class="ac dfs">
+        <h4>Time Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b<sup>m</sup>)</div>
+        <p>Where m = maximum depth. In worst case, explores entire tree.</p>
+      </div>
+      <div class="ac dfs">
+        <h4>Space Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b × m)</div>
+        <p style="color:var(--accent4);">🟢 LOW! Only stores current path + siblings. This is DFS's big advantage.</p>
+        <p style="font-size:12px;">Your notes: "Space Complexity = O(b × m)"</p>
+      </div>
+    </div>
+    <h3>DFS Visualisation</h3>
+    <div class="cb">
+<span class="c">// Tree: S→{A,B}, A→{C,D}, B→{E,F}, goal=F</span>
+Stack at each step:
+Init:  [S]
+→ Pop S: push A, B (B on top) → Stack: [A, B] (B on top)
+  actually depends on order... let's say push right-then-left
+→ Pop B: push E, F (F on top) → Stack: [A, E, F]
+→ Pop F: GOAL! Done.
+
+<span class="c">// DFS went: S → B → F (found goal quickly here)</span>
+<span class="c">// But could explore entire subtree before finding goal!</span>
+
+<span class="c">// Space: only stores [S, B, F] — just the current path</span>
+<span class="c">// Compare BFS: would store entire level-by-level frontier</span>
+    </div>
+    <div class="tip"><span>⚠️</span><p><strong>DFS's fatal flaw:</strong> In infinite or cyclic graphs, DFS may loop forever. Always use <strong>Graph Search</strong> (visited set) with DFS to avoid revisiting states.</p></div>
+    <h3>DFS in Practice — From Class Notes</h3>
+    <div class="box o"><p>The graph search trace from your handwritten notes (page 5) showed DFS exploring: s→d→b→c→a→p→f→q→h→e→r→G — notice how it goes very deep down one branch before backtracking. That's DFS!</p></div>
+  </div>
+</section>
+
+<!-- DLS -->
+<section class="sec" id="dls">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">📏</div>
+    <h2>DLS — Depth-Limited Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>Core Idea:</strong> DFS but with a <strong>hard depth limit L</strong>. Don't expand nodes deeper than L. This prevents the infinite-loop problem of DFS.</p></div>
+    <div class="box"><p><strong>From your notes:</strong> "DFS but up to certain depth." "Complete — if goal within range."</p></div>
+    <h3>How DLS is Different from DFS</h3>
+    <div class="cb">
+<span class="c">// DFS: goes as deep as possible (no limit)</span>
+<span class="c">// DLS: same as DFS BUT stops at depth L</span>
+
+DLS with L = 3:
+Level 0: S              ← expand
+Level 1: A, B           ← expand  
+Level 2: C, D, E, F     ← expand
+Level 3: G, H, ...      ← STOP! Don't go deeper than 3
+
+<span class="c">// If goal is at depth 4 → DLS with L=3 FAILS to find it</span>
+<span class="c">// If goal is at depth 2 → DLS with L=3 FINDS it ✓</span>
+    </div>
+    <h3>DLS Properties</h3>
+    <table>
+      <tr><th>Property</th><th>Result</th><th>Explanation</th></tr>
+      <tr><td><strong>Completeness</strong></td><td style="color:var(--accent5)">If L ≥ s</td><td>Complete only if depth limit L is at least as deep as the shallowest solution s. If L &lt; s, it fails.</td></tr>
+      <tr><td><strong>Optimality</strong></td><td style="color:#ef4444">✗ No</td><td>Does not guarantee finding the cheapest solution.</td></tr>
+      <tr><td><strong>Time</strong></td><td>O(b<sup>L</sup>)</td><td>Explores all nodes up to depth L.</td></tr>
+      <tr><td><strong>Space</strong></td><td>O(b × L)</td><td>Low memory — just stores current path + siblings up to depth L.</td></tr>
+    </table>
+    <h3>DLS in Exam Questions</h3>
+    <div class="box y"><p>In your <strong>Summer 2025 midterm</strong>: DLS with limit=5 on a warehouse grid. Start=(0,0), Goal=(2,1). The question asks what path DLS returns with limit 5. Since the optimal path has length 3 ≤ 5, DLS will find it (follows DFS order with Up&gt;Down&gt;Right&gt;Left priority).</p></div>
+  </div>
+</section>
+
+<!-- IDS -->
+<section class="sec" id="ids">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">🔁</div>
+    <h2>IDS — Iterative Deepening Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box g"><p><strong>Core Idea:</strong> Run DLS with limit 0, then limit 1, then limit 2, then 3... keeping going until the solution is found. Gets <strong>DFS's memory advantage + BFS's completeness and optimality</strong>. Best of both worlds!</p></div>
+    <div class="box g"><p><strong>From your notes:</strong> "IDS = CDFS at level = 1, 2, 3, 4 — ..." (Consecutive DFS at increasing levels)</p></div>
+    <h3>Why IDS Seems Wasteful But Isn't</h3>
+    <div class="cb">
+<span class="c">// IDS runs DLS repeatedly, re-exploring previous levels</span>
+<span class="c">// "Isn't that wastefully redundant?" — NO! Here's why:</span>
+
+IDS iterations (b=2, solution at depth s=3):
+  Depth 0: explore 1 node
+  Depth 1: explore 1+2 = 3 nodes  
+  Depth 2: explore 1+2+4 = 7 nodes
+  Depth 3: explore 1+2+4+8 = 15 nodes ← goal found here!
+  
+Total nodes explored = 1 + 3 + 7 + 15 = 26
+
+<span class="c">// BFS would explore: 1 + 2 + 4 + 8 = 15 nodes (just once)</span>
+<span class="c">// IDS: 26 nodes — only 73% more work but MUCH less memory!</span>
+<span class="c">// Key insight: most work happens in the DEEPEST level searched</span>
+<span class="c">// So re-exploring shallower levels is negligible overhead!</span>
+    </div>
+    <h3>IDS Properties</h3>
+    <div class="algo-grid">
+      <div class="ac ids">
+        <h4>Completeness</h4>
+        <p><span class="tag yes">✓ YES</span> — Always finds a solution if one exists. Like BFS!</p>
+      </div>
+      <div class="ac ids">
+        <h4>Optimality</h4>
+        <p><span class="tag cond">If equal costs</span> — Finds shallowest solution first (optimal when all steps cost 1).</p>
+      </div>
+      <div class="ac ids">
+        <h4>Time Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b<sup>s</sup>)</div>
+        <p>Same as BFS in time — just slightly more constant factor due to re-exploration.</p>
+      </div>
+      <div class="ac ids">
+        <h4>Space Complexity</h4>
+        <div class="formula" style="font-size:12px;padding:8px;">O(b × s)</div>
+        <p style="color:var(--accent4);">🟢 LOW! Like DFS — only stores current path. This is the big win!</p>
+      </div>
+    </div>
+    <div class="tip"><span>⭐</span><p><strong>IDS is the best uninformed search algorithm in practice!</strong> Use it when you don't know the solution depth and want both completeness and low memory.</p></div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section class="sec" id="compare">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">⚡</div>
+    <h2>Complete Comparison Table</h2>
+  </div>
+  <div class="bdy">
+    <table>
+      <tr><th>Algorithm</th><th>Data Structure</th><th>Complete?</th><th>Optimal?</th><th>Time</th><th>Space</th><th>Best Use Case</th></tr>
+      <tr>
+        <td><strong style="color:var(--accent)">BFS</strong></td>
+        <td>Queue (FIFO)</td>
+        <td style="color:var(--accent4)">✓ Yes</td>
+        <td style="color:var(--accent5)">If cost=1</td>
+        <td>O(b<sup>s</sup>)</td>
+        <td style="color:#ef4444">O(b<sup>s</sup>) HIGH</td>
+        <td>Shortest path (equal costs)</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent2)">DFS</strong></td>
+        <td>Stack (LIFO)</td>
+        <td style="color:#ef4444">✗ No*</td>
+        <td style="color:#ef4444">✗ No</td>
+        <td>O(b<sup>m</sup>)</td>
+        <td style="color:var(--accent4)">O(bm) LOW</td>
+        <td>Memory limited, finite spaces</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent3)">DLS</strong></td>
+        <td>Stack + depth counter</td>
+        <td style="color:var(--accent5)">If L≥s</td>
+        <td style="color:#ef4444">✗ No</td>
+        <td>O(b<sup>L</sup>)</td>
+        <td style="color:var(--accent4)">O(bL) LOW</td>
+        <td>Known max depth (e.g., limit=5)</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">IDS</strong></td>
+        <td>Stack (like DFS)</td>
+        <td style="color:var(--accent4)">✓ Yes</td>
+        <td style="color:var(--accent5)">If cost=1</td>
+        <td>O(b<sup>s</sup>)</td>
+        <td style="color:var(--accent4)">O(bs) LOW</td>
+        <td>⭐ Unknown depth, need completeness</td>
+      </tr>
+    </table>
+    <div class="box y"><p>*DFS is complete on <strong>finite trees without cycles</strong>. With a visited set (graph search), DFS becomes complete on finite graphs too.</p></div>
+    <div class="tip"><span>🧠</span><p><strong>Memory tip:</strong> BFS = horizontal (wide, lots of memory). DFS = vertical (deep, low memory). IDS = DFS trying every depth limit = low memory + complete!</p></div>
+  </div>
+</section>
+
+<!-- SOLVED PROBLEMS -->
+<section class="sec" id="solved">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">✅</div>
+    <h2>Solved Exam Problems</h2>
+  </div>
+  <div class="bdy">
+    <h3>Problem 1: IDS Node Calculation (b=4, m=10, s=3)</h3>
+    <div class="box o"><p>Search tree: branching factor b=4, max depth m=10, shallowest solution depth s=3. Root at level 0, algorithms work left to right. Which strategy expands fewest nodes? Expanding any node has unit cost.</p></div>
+    <div class="anb">
+      <div class="albl">▶ SOLUTION</div>
+      <p><strong>Case a: Shallowest solution at LEFTMOST node (depth s=3)</strong></p>
+      <p>If goal is leftmost at depth 3, <strong>DFS going left-to-right</strong> finds it by going straight down the leftmost branch — very quickly (about 3×4 ≈ 13 nodes). DFS wins here!</p>
+      <div class="divider"></div>
+      <p><strong>Case b: Shallowest solution at RIGHTMOST node (depth s=3)</strong></p>
+      <p>DFS will explore ALL branches from left before reaching rightmost. BFS or IDS performs better here.</p>
+      <div class="divider"></div>
+      <p><strong>IDS Node Count (worst case, b=4, s=3):</strong></p>
+      <div class="formula">
+        Iteration 0: 1 node<br>
+        Iteration 1: 1 + 4 = 5 nodes<br>
+        Iteration 2: 1 + 4 + 16 = 21 nodes<br>
+        Iteration 3: 1 + 4 + 16 + 64 = 85 nodes<br><br>
+        <strong style="color:var(--accent4)">Total IDS = 1 + 5 + 21 + 85 = 112 nodes</strong>
+      </div>
+      <p><strong>BFS node count:</strong> 1 + 4 + 16 + 64 = <span style="color:var(--accent)">85 nodes</span> (but requires O(b³) = 64 nodes in memory at once!)</p>
+      <div class="box g"><p><strong>Key insight:</strong> IDS uses only O(bs) = 12 memory slots. BFS needs O(b³) = 64 memory slots. IDS trades a small time overhead (112 vs 85 nodes) for huge memory savings. That's why IDS is preferred!</p></div>
+      <p><strong>Case: infinite depth (m = ∞):</strong></p>
+      <p>BFS and IDS still work (they find shallowest solution). <strong>DFS fails</strong> — it may go infinitely deep and never return.</p>
+    </div>
+
+    <div class="divider"></div>
+    <h3>Problem 2: DFS/BFS on Password Recovery (From Spring 2025 Midterm)</h3>
+    <div class="box o"><p>Strings of X,Y,Z. DFS/BFS/UCS search for passwords. Alphabetical tie-breaking. Correct passwords: XXXZZZ, XYYZZ, YXYXY, YZXYXZY, ZYXZ, ZYXZY.</p></div>
+    <div class="anb">
+      <div class="albl">▶ SOLUTION</div>
+      <p><strong>DFS (goes deepest, alphabetical = X before Y before Z):</strong></p>
+      <p>DFS explores X→XX→XXX→XXXX→...→XXXXXXXXXX (deepest X path), then backtracks. Eventually reaches XXXZZZ (correct!). DFS returns <span style="color:var(--accent4)"><strong>XXXZZZ</strong></span>.</p>
+      <div class="divider"></div>
+      <p><strong>BFS (explores level by level, alphabetical tie-breaking):</strong></p>
+      <p>BFS checks all length-1 strings (X,Y,Z), then all length-2, then length-3, then length-4. The only correct password of length 4 is <strong>ZYXZ</strong>. BFS returns <span style="color:var(--accent4)"><strong>ZYXZ</strong></span>.</p>
+      <div class="box g"><p>✅ BFS finds shallowest (shortest) correct password. ✅ DFS finds the leftmost deep correct password (along the all-X path).</p></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3>Problem 3: Applying DFS and BFS to a Graph (Fall 2025 Midterm)</h3>
+    <div class="box o"><p>Graph (undirected): S-A:1, S-C:10, A-B:5, A-C:10, B-C:2, B-G:5, C-G:1. Start=S, Goal=G. Apply DFS and show tree representation.</p></div>
+    <div class="anb">
+      <div class="albl">▶ DFS TRACE (alphabetical: expand A before B before C before G)</div>
+      <div class="cb">
+<span class="n">Tree representation (rooted at S):</span>
+S
+├── A (cost 1 from S)
+│   ├── B (cost 6 from S via A)
+│   │   ├── C (cost 8 from S via A,B)
+│   │   │   └── G (cost 9) ← <span class="g">GOAL FOUND!</span>
+│   │   └── G (cost 11 via A,B)
+│   └── C (cost 11 via A,C)
+└── C (cost 10 from S)
+    └── G (cost 11 via C)
+
+<span class="c">// DFS goes: S → A (first, alphabetical) → B → C → G</span>
+<span class="g">DFS Path: S → A → B → C → G | Cost = 1+5+2+1 = 9</span>
+      </div>
+      <p>Note: BFS would find path S→C→G (cost 11, but fewest hops = 2). DFS here happens to find the cheaper path by chance — but this is NOT guaranteed!</p>
+    </div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

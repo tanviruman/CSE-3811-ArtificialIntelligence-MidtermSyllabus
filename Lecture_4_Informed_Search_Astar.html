@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 4 — Informed Search · A* · Heuristics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#0a0e1a,#0d1b2e);border-bottom:2px solid var(--accent4);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(16,185,129,.15);border:1px solid var(--accent4);color:var(--accent4);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4vw,46px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--accent4);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--accent4);border-color:var(--accent4);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent4);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}li strong{color:var(--text);}
+  .box{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-left:4px solid var(--accent4);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.b{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.2);border-left-color:var(--accent);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box.o{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.2);border-left-color:var(--accent2);}
+  .box.r{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);border-left-color:#ef4444;}
+  .box.p{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2);border-left-color:var(--accent3);}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(16,185,129,.1);color:var(--accent4);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}.tip p{margin:0;color:var(--hi);font-size:13px;}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(16,185,129,.1);color:var(--accent4);padding:2px 6px;border-radius:4px;font-size:12px;}
+  .cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#e2e8f0;overflow-x:auto;line-height:1.8;}
+  .cb .c{color:#6b7280;}.cb .k{color:#c084fc;}.cb .g{color:#86efac;}.cb .n{color:#67e8f9;}.cb .y{color:var(--accent5);}
+  .formula{background:#0d1117;border:1px solid var(--accent4);border-radius:8px;padding:14px 18px;margin:12px 0;font-family:'IBM Plex Mono',monospace;color:var(--accent4);font-size:16px;text-align:center;letter-spacing:.5px;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .anb{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:16px 18px;margin:10px 0;}
+  .albl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent4);margin-bottom:8px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+  .card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .card h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:14px;margin-bottom:8px;}
+  .card p{font-size:13px;margin-bottom:5px;}
+  @media(max-width:580px){.two{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">LECTURE 4 · INFORMED SEARCH</div>
+  <h1>Informed Search<br><span>Heuristics · Greedy · A* · Admissibility · Consistency</span></h1>
+  <p>// f(n)=g(n)+h(n) · Manhattan Distance · A* Tree vs Graph · Dominance · Fall 2023 Solved</p>
+</header>
+<nav>
+  <a href="#heuristic">Heuristics</a>
+  <a href="#greedy">Greedy Search</a>
+  <a href="#astar">A* Search</a>
+  <a href="#admissible">Admissibility</a>
+  <a href="#consistent">Consistency</a>
+  <a href="#treevsgraph">Tree vs Graph</a>
+  <a href="#dominance">Dominance</a>
+  <a href="#combos">Heuristic Combos</a>
+  <a href="#solved">Solved Problems</a>
+</nav>
+<main>
+
+<!-- HEURISTICS -->
+<section class="sec" id="heuristic">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">🧭</div>
+    <h2>Search Heuristics — The Smart Shortcut</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p><strong>What is a Heuristic?</strong> A heuristic <code>h(n)</code> is a function that <strong>estimates how far node n is from the goal</strong>. It's domain-specific knowledge encoded as a number. It guides the search toward the goal without needing to explore everything.</p></div>
+    <div class="box"><p><strong>From your notes:</strong> "Estimated a cost from a position to the goal." And: "UCS: source node is g=0. Heuristics: goal is h=0." — meaning at the goal, h=0 always!</p></div>
+    <h3>Two Classic Heuristics</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h4>📐 Manhattan Distance (h₂)</h4>
+        <p>Count of city blocks between current and goal. Only horizontal + vertical moves.</p>
+        <div class="formula" style="font-size:13px;padding:8px;">h(n) = |x₂ - x₁| + |y₂ - y₁|</div>
+        <p style="font-size:12px;">Your notes: "0 ≤ h₂ ≤ h*". Used for grid problems, 8-puzzle (misplaced tiles + distance).</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h4>📏 Euclidean Distance (h₁)</h4>
+        <p>Straight-line (as the crow flies) distance between current and goal.</p>
+        <div class="formula" style="font-size:13px;padding:8px;">h(n) = √[(x₂-x₁)² + (y₂-y₁)²]</div>
+        <p style="font-size:12px;">Your notes: "0 ≤ h₁ ≤ h*". Used for Romania map (straight-line distance to Bucharest).</p>
+      </div>
+    </div>
+    <div class="tip"><span>💡</span><p><strong>Which is better?</strong> Manhattan ≥ Euclidean (when moves are grid-based). Higher heuristic (closer to true cost) = fewer nodes explored = faster. But must never EXCEED true cost (see Admissibility).</p></div>
+    <h3>8-Puzzle Heuristics (From Your Notes)</h3>
+    <div class="box y"><p><strong>Misplaced Tiles heuristic:</strong> h = count of tiles NOT in their correct position. Each misplaced tile adds 1 to h. This is admissible because each misplaced tile requires AT LEAST 1 move.</p></div>
+    <div class="box y"><p><strong>Manhattan Distance heuristic:</strong> h = sum of Manhattan distances of each tile from its goal position. Example: if tile 3 is 2 columns and 1 row away, it adds 3 to h. BETTER than misplaced tiles (higher, closer to true cost)!</p></div>
+    <table>
+      <tr><th>Heuristic</th><th>4-step solutions</th><th>8-step solutions</th><th>12-step solutions</th></tr>
+      <tr><td>UCS (no heuristic)</td><td>112</td><td>6,300</td><td>3.6 × 10⁶</td></tr>
+      <tr><td>Misplaced Tiles</td><td>13</td><td>39</td><td>227</td></tr>
+      <tr><td>Manhattan Distance</td><td>12</td><td>25</td><td>73</td></tr>
+    </table>
+    <p>Manhattan is clearly better — explores far fewer nodes!</p>
+  </div>
+</section>
+
+<!-- GREEDY -->
+<section class="sec" id="greedy">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🏃</div>
+    <h2>Greedy Best-First Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p><strong>Idea:</strong> Always expand the node with the <strong>smallest h(n)</strong> — the one that seems closest to the goal. Uses ONLY the heuristic (no backward cost). Greedy = impatient!</p></div>
+    <div class="formula">f(n) = h(n)  ← only forward estimate, no backward cost</div>
+    <h3>Properties</h3>
+    <div class="two">
+      <div class="card"><h4>Completeness</h4><p>❌ NO — Can get trapped in loops.</p></div>
+      <div class="card"><h4>Optimality</h4><p>❌ NO — May take a longer path that looks close to goal.</p></div>
+      <div class="card"><h4>Time</h4><p>O(b<sup>m</sup>) worst case — can be much better in practice with good heuristic.</p></div>
+      <div class="card"><h4>Space</h4><p>O(b<sup>m</sup>) — stores all nodes in memory.</p></div>
+    </div>
+    <div class="box r"><p><strong>What can go wrong?</strong> Greedy can go directly to the "wrong goal" — a goal that looks close by heuristic but is actually a dead end or suboptimal path. Worst case: behaves like a badly-guided DFS!</p></div>
+    <div class="tip"><span>💡</span><p><strong>Greedy = good for quick-and-dirty solutions.</strong> Fast but not optimal. Use when speed matters more than solution quality.</p></div>
+  </div>
+</section>
+
+<!-- A* -->
+<section class="sec" id="astar">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">⭐</div>
+    <h2>A* Search — The Best of Both Worlds</h2>
+  </div>
+  <div class="bdy">
+    <div class="box b"><p><strong>A* combines UCS + Greedy:</strong> It uses both the actual cost so far AND the estimated remaining cost. This makes it both optimal AND informed (efficient).</p></div>
+    <div class="formula">f(n) = g(n) + h(n)</div>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent5)">
+        <h4 style="color:var(--accent5)">g(n) — Backward Cost</h4>
+        <p>Actual cost from start to node n (the path cost so far). This is what UCS uses alone.</p>
+        <p style="font-size:12px;color:var(--hi);">Your notes: "UCS − g(n)"</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h4 style="color:var(--accent2)">h(n) — Forward Cost</h4>
+        <p>Estimated cost from node n to goal (heuristic). This is what Greedy uses alone.</p>
+        <p style="font-size:12px;color:var(--hi);">Your notes: "Greedy − h(n)"</p>
+      </div>
+    </div>
+    <div class="box b"><p><strong>f(n)</strong> = estimated total cost of the cheapest solution passing through node n. A* expands nodes in order of increasing f(n) — always picks the node with the best estimated total cost!</p></div>
+    <h3>A* Properties</h3>
+    <table>
+      <tr><th>Property</th><th>A* Tree Search</th><th>A* Graph Search</th></tr>
+      <tr><td><strong>Complete</strong></td><td style="color:var(--accent4)">✓ Yes</td><td style="color:var(--accent4)">✓ Yes</td></tr>
+      <tr><td><strong>Optimal</strong></td><td style="color:var(--accent4)">✓ Yes (if h admissible)</td><td style="color:var(--accent4)">✓ Yes (if h consistent)</td></tr>
+      <tr><td><strong>Requires</strong></td><td>Admissible h</td><td>Consistent h (stronger condition)</td></tr>
+      <tr><td><strong>Revisits states?</strong></td><td>Yes (allows duplicates)</td><td>No (uses closed/explored set)</td></tr>
+    </table>
+    <div class="tip"><span>🧠</span><p><strong>Remember from your notes:</strong> "UCS = f(n) = g(n) + h⁰ (where h=0)" — if you set h=0, A* becomes exactly UCS! And if you set g=0, A* becomes Greedy!</p></div>
+  </div>
+</section>
+
+<!-- ADMISSIBILITY -->
+<section class="sec" id="admissible">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">✅</div>
+    <h2>Admissibility — Required for Optimality</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>Admissibility Rule:</strong> A heuristic h is admissible if it <strong>never overestimates</strong> the true cost to reach the goal. It's optimistic — it assumes things will go better than they actually will.</p></div>
+    <div class="formula">0 ≤ h(n) ≤ h*(n) for all nodes n</div>
+    <p>Where <code>h*(n)</code> = actual shortest path cost from n to goal.</p>
+    <div class="box y"><p><strong>From your notes (Class 5):</strong> "Range: 0 ≤ h(n) ≤ h*(n). h = assumption heuristic. h* = actual optimal cost (the true path cost)." And: "For nodes: h(S)=7, h*(S)=4 → 7 ≤ 4 → FALSE → Node S not admissible!"</p></div>
+    <h3>How to Check Admissibility — Step by Step</h3>
+    <div class="steps" style="margin:0;">
+      <div style="display:flex;gap:12px;margin-bottom:8px;"><div style="width:24px;height:24px;border-radius:50%;background:var(--accent5);color:#000;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div><p style="margin:0;color:var(--muted);font-size:14px;">For each node, compute the <strong>actual shortest path cost to goal</strong> (h*)</p></div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;"><div style="width:24px;height:24px;border-radius:50%;background:var(--accent5);color:#000;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div><p style="margin:0;color:var(--muted);font-size:14px;">Compare: is <strong>h(n) ≤ h*(n)</strong> for EVERY node?</p></div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;"><div style="width:24px;height:24px;border-radius:50%;background:var(--accent5);color:#000;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div><p style="margin:0;color:var(--muted);font-size:14px;">If ANY node fails (h(n) > h*(n)) → <strong>NOT admissible</strong>. Fix: reduce that h(n) to be ≤ h*(n)</p></div>
+    </div>
+    <h3>Worked Example — Fall 2023 Graph (From Your Notes!)</h3>
+    <div class="box y"><p>Graph: S→A:3, S→D:18, A→B:8, A→C:11, B→G:4, C→G:6, D→E:7, D→C:? ... with h values: S=14, A=14, B=4, C=4, D=12, E=5, G=0.</p></div>
+    <div class="anb">
+      <div class="albl">▶ ADMISSIBILITY CHECK (from your notes page 21)</div>
+      <table>
+        <tr><th>Node</th><th>Given h</th><th>Actual h* (shortest to G)</th><th>Admissible?</th><th>Fix</th></tr>
+        <tr><td>S</td><td>14</td><td>15 (S→A→B→G = 3+8+4)</td><td style="color:#ef4444">✗ NO (14 ≤ 15 ✓ actually OK!)</td><td>—</td></tr>
+        <tr><td>A</td><td>14</td><td>12 (A→B→G = 8+4)</td><td style="color:#ef4444">✗ NO (14 > 12)</td><td>Change to ≤12 (your notes say 12)</td></tr>
+        <tr><td>B</td><td>4</td><td>4 (B→G = 4)</td><td style="color:var(--accent4)">✓ YES</td><td>—</td></tr>
+        <tr><td>C</td><td>4</td><td>6 (C→G = 6)</td><td style="color:var(--accent4)">✓ YES (4 ≤ 6)</td><td>—</td></tr>
+        <tr><td>D</td><td>12</td><td>13 (D→...→G)</td><td style="color:var(--accent4)">✓ YES (12 ≤ 13)</td><td>—</td></tr>
+        <tr><td>E</td><td>5</td><td>5</td><td style="color:var(--accent4)">✓ YES</td><td>—</td></tr>
+        <tr><td>G</td><td>0</td><td>0 (already at goal)</td><td style="color:var(--accent4)">✓ YES</td><td>—</td></tr>
+      </table>
+      <div class="box"><p>✅ Only node A is inadmissible (h=14 > h*=12). Fix: set h(A) = 12 or any value ≤ 12.</p></div>
+    </div>
+    <h3>Why Admissibility Ensures A* Tree Search is Optimal</h3>
+    <div class="box"><p>If h never overestimates, then f(n) = g(n) + h(n) never overestimates the true cost of passing through n. So A* will always find and expand the true optimal goal first, before any suboptimal path.</p></div>
+  </div>
+</section>
+
+<!-- CONSISTENCY -->
+<section class="sec" id="consistent">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">🔗</div>
+    <h2>Consistency (Monotonicity) — Required for A* Graph Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="box p"><p><strong>Consistency Rule:</strong> A heuristic h is consistent if for every node n and every successor n' with edge cost c(n,n'):</p></div>
+    <div class="formula">h(n) ≤ c(n, n') + h(n')</div>
+    <p>This is the <strong>triangle inequality</strong> for heuristics. The estimated distance to goal from n should never exceed the cost to take one step + estimated distance from the next node.</p>
+    <div class="box p"><p><strong>From your notes (Class 6):</strong> "h(B) ≤ c + h(A)" (triangle inequality). And: "h(B) - h(A) ≤ c" — meaning the heuristic drop between 2 nodes is less than or equal to the actual cost between them.</p></div>
+    <h3>Consistency vs Admissibility</h3>
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent4)">
+        <h4>Admissibility</h4>
+        <p>h(n) ≤ h*(n) — never overestimates to goal.</p>
+        <p>Required for: <strong>A* Tree Search</strong></p>
+        <p style="color:var(--hi);font-size:12px;">Weaker condition. Every consistent h is admissible.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3)">
+        <h4>Consistency</h4>
+        <p>h(n) ≤ c(n,n') + h(n') — triangle inequality holds.</p>
+        <p>Required for: <strong>A* Graph Search</strong></p>
+        <p style="color:var(--hi);font-size:12px;">Stronger condition. Guarantees f(n) never decreases along path.</p>
+      </div>
+    </div>
+    <div class="box p"><p><strong>KEY FACT:</strong> Consistency → Admissibility (but NOT the other way around!). A consistent heuristic is always admissible. An admissible heuristic is NOT necessarily consistent.</p></div>
+    <h3>What Happens with Inconsistent Heuristic in Graph Search?</h3>
+    <div class="box r"><p>If h is admissible but NOT consistent, A* Graph Search may close a node via a non-optimal path (because the closed set prevents re-exploration). This means it might MISS the optimal solution!</p></div>
+    <div class="box r"><p><strong>Example from your notes (page 17):</strong> Graph S→A(1), S→B(1), B→C(2), A→C(1), C→G(3). h values: S=2, A=4, B=1, C=1, G=0. Checking S→A: h(S)=2 ≤ c(S,A)+h(A) = 1+4 = 5 ✓. But there may be an edge that violates this. When inconsistent → A* graph search found S→B→C→G instead of S→A→C→G (optimal). "Failed to find optimal path as it is not consistent."</p></div>
+    <h3>Checking Consistency — How To</h3>
+    <div class="cb">
+<span class="c">// For EVERY edge (n → n') in the graph:</span>
+Check: h(n) ≤ cost(n, n') + h(n')
+Equivalently: h(n) - h(n') ≤ cost(n, n')
+
+<span class="c">// If ANY edge violates this → INCONSISTENT!</span>
+<span class="c">// Example from Fall 2023 (your notes page 21):</span>
+Edge D→C, cost=7, h(D)=12, h(C)=9 (updated)
+Check: h(D) - h(C) ≤ 7 → 12-9=3 ≤ 7 ✓ consistent
+
+Edge D→C with original h(C)=4:
+Check: 12-4=8 ≤ 7 → 8 ≤ 7 ✗ NOT consistent!
+Fix: n(D) = 11 (reduce D to make it consistent)
+Your notes say "n(D) = 11" because 7+4=11 ≥ h(D)
+    </div>
+  </div>
+</section>
+
+<!-- TREE VS GRAPH -->
+<section class="sec" id="treevsgraph">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🌲</div>
+    <h2>A* Tree Search vs A* Graph Search</h2>
+  </div>
+  <div class="bdy">
+    <div class="two">
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h4>A* Tree Search</h4>
+        <ul style="color:var(--muted);font-size:13px;padding-left:18px;">
+          <li>Uses an <strong>open set only</strong></li>
+          <li>Allows duplicate/repeated states</li>
+          <li>May explore same state multiple times</li>
+          <li>Optimal if h is <strong>admissible</strong></li>
+          <li>Slower (more nodes) but safe with admissible h</li>
+        </ul>
+        <p style="font-size:12px;color:var(--hi);">Your notes: "Open set · Duplicate allowed · Admissibility"</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3)">
+        <h4>A* Graph Search</h4>
+        <ul style="color:var(--muted);font-size:13px;padding-left:18px;">
+          <li>Uses a <strong>closed set</strong> (explored set)</li>
+          <li>Never expands the same node twice</li>
+          <li>More efficient — prunes explored states</li>
+          <li>Optimal if h is <strong>consistent</strong></li>
+          <li>May fail with only admissible (not consistent) h</li>
+        </ul>
+        <p style="font-size:12px;color:var(--hi);">Your notes: "Closed set · No duplicate/seen · Easier for consistent heuristics"</p>
+      </div>
+    </div>
+    <h3>Full Worked Example — A* Tree and Graph on Same Graph</h3>
+    <div class="box b"><p>Graph: S(h=6)→A(h=4):cost 2; S→C(h=3):cost 2; A→B(h=1):cost 1; A→C:cost 2; C→D(h=1):cost 2; B→G(h=0):cost 3; D→G:cost 3.</p></div>
+    <div class="anb">
+      <div class="albl">▶ A* TREE SEARCH TRACE</div>
+      <div class="cb">
+<span class="c">// f(n) = g(n) + h(n)</span>
+Init: PQ=[(f=6, g=0, S)]
+
+Pop S(f=6,g=0). Expand:
+  A: g=2, h=4, f=6
+  C: g=2, h=3, f=5
+PQ: [(5,C,g=2), (6,A,g=2)]
+
+Pop C(f=5,g=2). Expand:
+  D: g=4, h=1, f=5
+PQ: [(5,D,g=4), (6,A,g=2)]
+
+Pop D(f=5,g=4). Expand:
+  G: g=7, h=0, f=7
+PQ: [(6,A,g=2), (7,G,g=7)]
+
+Pop A(f=6,g=2). Expand:
+  B: g=3, h=1, f=4
+  C: g=4, h=3, f=7  ← tree search allows duplicate C!
+PQ: [(4,B,g=3), (7,G,g=7), (7,C,g=4)]
+
+Pop B(f=4,g=3). Expand:
+  G: g=6, h=0, f=6
+PQ: [(6,G via B,g=6), (7,G via D,g=7), (7,C)]
+
+Pop G(f=6,g=6) → <span class="g">GOAL!</span>
+
+<span class="g">A* Tree Path: S → A → B → G  |  Cost = 2+1+3 = 6 ✅ OPTIMAL</span>
+      </div>
+      <div class="anb">
+        <div class="albl">▶ A* GRAPH SEARCH TRACE</div>
+        <div class="cb">
+<span class="c">// Closed set prevents re-exploring nodes</span>
+Closed={}, PQ=[(6,S,g=0)]
+
+Pop S→Close S. Add A(f=6), C(f=5)
+PQ:[(5,C),(6,A)]. Closed={S}
+
+Pop C→Close C. Add D(f=5)
+PQ:[(5,D),(6,A)]. Closed={S,C}
+
+Pop D→Close D. Add G(f=7)
+PQ:[(6,A),(7,G via D)]. Closed={S,C,D}
+
+Pop A→Close A. Add B(f=4). C→SKIP(in closed)
+PQ:[(4,B),(7,G via D)]. Closed={S,C,D,A}
+
+Pop B→Close B. Add G(f=6 via B)
+PQ:[(6,G via B),(7,G via D)]
+
+Pop G(f=6)→ <span class="g">GOAL!</span>
+
+<span class="g">A* Graph Path: S → A → B → G  |  Cost = 6 (same!)</span>
+<span class="y">BUT: h is INCONSISTENT so optimality not GUARANTEED here!</span>
+<span class="c">// Check: h(S)=6, c(S,C)=2, h(C)=3. 6 ≤ 2+3=5? 6≤5? NO! Inconsistent!</span>
+        </div>
+      </div>
+      <div class="box r"><p><strong>Consistency Check:</strong> h(S)=6, edge S→C costs 2, h(C)=3. For consistency: h(S) ≤ c(S,C) + h(C) → 6 ≤ 2+3 = 5? NO! 6 > 5. <strong>Heuristic is INCONSISTENT!</strong> Therefore A* Graph Search is NOT guaranteed optimal.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- DOMINANCE -->
+<section class="sec" id="dominance">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">👑</div>
+    <h2>Dominance — Which Heuristic is Better?</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>h₂ dominates h₁ if:</strong> h₂(n) ≥ h₁(n) for ALL nodes n (and both are admissible). A dominant heuristic explores fewer nodes because it provides tighter (more accurate) estimates.</p></div>
+    <div class="formula" style="font-size:13px;">0 ≤ h₁ ≤ h₂ ≤ h* → h₂ is BETTER (dominant over h₁)</div>
+    <div class="box y"><p><strong>From your notes:</strong> "0 ≤ hc ≤ ha ≤ h* → better." The semi-lattice shows: exact (h*) at top, then max(ha,hb), then individual ha, hb, then lower ones, then 0 at bottom. Higher = better heuristic.</p></div>
+    <h3>Key Dominance Result</h3>
+    <div class="box g"><p><strong>Best admissible combination:</strong> <code>h_dom(n) = max(h₁(n), h₂(n))</code>. Taking the max of admissible heuristics creates a new admissible heuristic that dominates both — the BEST of both worlds!</p></div>
+    <p>Why? If h₁ ≤ h* and h₂ ≤ h*, then max(h₁,h₂) ≤ h*. And max ≥ each individual, so it dominates both!</p>
+  </div>
+</section>
+
+<!-- HEURISTIC COMBINATIONS -->
+<section class="sec" id="combos">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🧮</div>
+    <h2>Heuristic Combination Rules — Exam Favourite!</h2>
+  </div>
+  <div class="bdy">
+    <div class="box o"><p>Given h₁, h₂, h₃ are admissible (0 ≤ hᵢ ≤ h*) and h₄ is inadmissible (h₄ > h* possible). Determine which combinations are admissible:</p></div>
+    <table>
+      <tr><th>New Heuristic</th><th>Admissible?</th><th>Reason</th></tr>
+      <tr><td><strong>h = max(h₁, h₂, h₃)</strong></td><td style="color:var(--accent4)">✓ YES</td><td>Max of admissible heuristics ≤ h* (all ≤ h*, so max ≤ h*). Also dominant!</td></tr>
+      <tr><td><strong>h = min(h₁, h₂, h₄)</strong></td><td style="color:var(--accent4)">✓ YES</td><td>Min of any values ≤ min of admissible ones ≤ h*. Min can never exceed h*.</td></tr>
+      <tr><td><strong>h = (h₁+h₂)/3</strong></td><td style="color:var(--accent4)">✓ YES</td><td>Average of admissible ≤ average of h* = h*. (from your notes: "h6 = (h1+h2)/3 — Admissible")</td></tr>
+      <tr><td><strong>h = h₁² + h₂ + h₃</strong></td><td style="color:#ef4444">✗ NO</td><td>h₁² can exceed h* even if h₁ ≤ h*. Squaring breaks the admissibility bound.</td></tr>
+      <tr><td><strong>h = max(h₁, h₂, h₃, h₄)</strong></td><td style="color:#ef4444">✗ NO</td><td>h₄ can be > h*, and max could take that value.</td></tr>
+      <tr><td><strong>h = 2h₁ + 3h₃</strong></td><td style="color:#ef4444">✗ NO</td><td>Scaling admissible heuristics by factors > 1 can exceed h*. (your notes: "h7 = 2h₁+3h₃ — Not admissible")</td></tr>
+      <tr><td><strong>h = (h₁+h₂+h₃+h₄)</strong></td><td style="color:#ef4444">✗ NO</td><td>Includes h₄ which can overestimate. Sum can exceed h*.</td></tr>
+      <tr><td><strong>h = max(min(h₁,h₃), h₄)</strong></td><td style="color:#ef4444">✗ NO</td><td>h₄ can be > h*, taking max of it with anything ≥ 0 can exceed h*.</td></tr>
+    </table>
+    <div class="tip"><span>🧠</span><p><strong>Quick rules:</strong> max(admissible, admissible) = admissible ✓ | min(any including inadmissible) = admissible ✓ | average of admissibles = admissible ✓ | sum/product/scale involving inadmissible = RISKY ✗</p></div>
+    <h3>The h5 and h6 Special Cases (Summer 2025 Midterm)</h3>
+    <div class="box o"><p><strong>h5(n) = max(h₁,h₄) + max(h₂,h₄) - 2×h₄ + h₃</strong></p></div>
+    <div class="anb">
+      <div class="albl">▶ ANALYSIS</div>
+      <p>Simplify: max(h₁,h₄) = h₁ if h₁≥h₄, else h₄. Similarly for max(h₂,h₄).</p>
+      <p>Case 1: h₁≥h₄ and h₂≥h₄: h5 = h₁ + h₂ - 2h₄ + h₃. If h₄ is large, this could reduce below 0 or still exceed h*. Generally admissible in this case.</p>
+      <p>Case 2: h₄>h₁ and h₄>h₂: h5 = h₄ + h₄ - 2h₄ + h₃ = h₃. Since h₃ admissible → h5 = h₃ ≤ h*. <span style="color:var(--accent4)">Admissible in this case!</span></p>
+      <div class="box g"><p>Overall: h5 ≤ h₁ + h₂ + h₃ ≤ 3h*. Not guaranteed admissible in all cases. <strong>Conclusion: Not guaranteed admissible.</strong></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLVED PROBLEMS -->
+<section class="sec" id="solved">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">✅</div>
+    <h2>Solved Exam Problems — Fall 2023</h2>
+  </div>
+  <div class="bdy">
+    <h3>Fall 2023: Fix Heuristic to be Admissible AND Consistent</h3>
+    <div class="box"><p>Graph from your notes (page 21): S→A:3, A→B:8, B→G:4, S→D:18, D→E:7, E→G:5, A→C:15, C→G:6, D→C:7. h values: S=14, A=14, B=4, C=4, D=12, E=5, G=0.</p></div>
+    <div class="anb">
+      <div class="albl">▶ STEP 1: CHECK ADMISSIBILITY</div>
+      <table>
+        <tr><th>Node</th><th>h given</th><th>Actual h* (min path to G)</th><th>Admissible?</th></tr>
+        <tr><td>S</td><td>14</td><td>min(S→A→B→G=3+8+4=15, S→D→E→G=18+7+5=30) = 15</td><td style="color:var(--accent4)">✓ (14≤15)</td></tr>
+        <tr><td>A</td><td>14</td><td>min(A→B→G=8+4=12, A→C→G=15+6=21) = 12</td><td style="color:#ef4444">✗ (14>12) — FIX!</td></tr>
+        <tr><td>B</td><td>4</td><td>B→G = 4</td><td style="color:var(--accent4)">✓ (4=4)</td></tr>
+        <tr><td>C</td><td>4</td><td>C→G = 6</td><td style="color:var(--accent4)">✓ (4≤6)</td></tr>
+        <tr><td>D</td><td>12</td><td>min(D→E→G=7+5=12, D→C→G=7+6=13) = 12</td><td style="color:var(--accent4)">✓ (12≤12)</td></tr>
+        <tr><td>E</td><td>5</td><td>E→G = 5</td><td style="color:var(--accent4)">✓ (5=5)</td></tr>
+        <tr><td>G</td><td>0</td><td>0</td><td style="color:var(--accent4)">✓</td></tr>
+      </table>
+      <div class="box"><p><strong>Fix:</strong> Change h(A) from 14 to 12 (or less). Your notes say "12 — equal, better."</p></div>
+      <div class="albl" style="margin-top:14px;">▶ STEP 2: CHECK CONSISTENCY (after fixing A to h=12)</div>
+      <table>
+        <tr><th>Edge</th><th>Check: h(from) ≤ cost + h(to)</th><th>Result</th></tr>
+        <tr><td>S→A</td><td>h(S)-h(A) = 14-12 = 2 ≤ cost(S,A)=3</td><td style="color:var(--accent4)">✓ Consistent</td></tr>
+        <tr><td>A→B</td><td>h(A)-h(B) = 12-4 = 8 ≤ cost(A,B)=8</td><td style="color:var(--accent4)">✓ Consistent</td></tr>
+        <tr><td>B→G</td><td>h(B)-h(G) = 4-0 = 4 ≤ cost(B,G)=4</td><td style="color:var(--accent4)">✓ Consistent</td></tr>
+        <tr><td>D→C</td><td>h(D)-h(C) = 12-4 = 8 ≤ cost(D,C)=7?</td><td style="color:#ef4444">✗ NOT consistent! 8 > 7</td></tr>
+      </table>
+      <div class="box r"><p><strong>Fix for D→C inconsistency:</strong> Need h(D) ≤ 7 + h(C) = 7+4 = 11. Change h(D) to 11. Your notes say "n(D) = 11" for this reason!</p></div>
+      <div class="box g"><p>✅ Final consistent and admissible h values: S=14, A=12, B=4, C=4, D=11, E=5, G=0</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

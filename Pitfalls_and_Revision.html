@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Exam — All Pitfalls · Revision · Pattern Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--card2:#161f30;--border:#1e2d45;--accent:#00d4ff;--accent2:#ff6b35;--accent3:#7c3aed;--accent4:#10b981;--accent5:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--hi:#fef08a;--red:#ef4444;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;line-height:1.75;font-size:15px;}
+  header{background:linear-gradient(135deg,#1a0505,#0a0e1a,#051a1a);border-bottom:2px solid var(--red);padding:36px 32px 28px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(239,68,68,.12),transparent 70%);border-radius:50%;}
+  .hbadge{display:inline-block;background:rgba(239,68,68,.15);border:1px solid var(--red);color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;letter-spacing:2px;margin-bottom:10px;}
+  header h1{font-family:'Syne',sans-serif;font-size:clamp(22px,4vw,44px);font-weight:800;color:#fff;line-height:1.1;}
+  header h1 span{color:var(--red);}
+  header p{color:var(--muted);margin-top:6px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  nav{background:var(--card);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 12px;border:1px solid var(--border);border-radius:20px;transition:.2s;}
+  nav a:hover{color:var(--red);border-color:var(--red);}
+  main{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+  .sec{margin-bottom:44px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .sec-hd{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--border);}
+  .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .sec-hd h2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#fff;}
+  .bdy{padding:22px 24px;}
+  h3{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--red);margin:18px 0 8px;}
+  h3:first-child{margin-top:0;}
+  h3.b{color:var(--accent);}h3.g{color:var(--accent4);}h3.p{color:var(--accent3);}h3.y{color:var(--accent5);}h3.o{color:var(--accent2);}
+  p{color:var(--muted);margin-bottom:10px;}
+  p strong{color:var(--text);}
+  ul,ol{color:var(--muted);padding-left:22px;margin-bottom:12px;}
+  li{margin-bottom:5px;}li strong{color:var(--text);}
+  .box{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-left:4px solid var(--red);border-radius:8px;padding:13px 16px;margin:12px 0;}
+  .box.b{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.2);border-left-color:var(--accent);}
+  .box.g{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);border-left-color:var(--accent4);}
+  .box.y{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);border-left-color:var(--accent5);}
+  .box.p{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2);border-left-color:var(--accent3);}
+  .box.o{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.2);border-left-color:var(--accent2);}
+  .box p{margin:0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th{background:rgba(239,68,68,.1);color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.8px;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);vertical-align:top;}
+  td strong{color:var(--text);}tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02);}
+  .tip{background:rgba(254,240,138,.06);border:1px solid rgba(254,240,138,.2);border-radius:8px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;margin:10px 0;}
+  .tip span{font-size:17px;}.tip p{margin:0;color:var(--hi);font-size:13px;}
+  code{font-family:'IBM Plex Mono',monospace;background:rgba(239,68,68,.1);color:var(--red);padding:2px 6px;border-radius:4px;font-size:12px;}
+  .cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#e2e8f0;overflow-x:auto;line-height:1.8;}
+  .cb .cm{color:#6b7280;}.cb .g{color:#86efac;}.cb .r{color:#fca5a5;}.cb .y{color:var(--accent5);}.cb .p{color:#c084fc;}
+  .formula{background:#0d1117;border:1px solid var(--red);border-radius:8px;padding:14px 18px;margin:12px 0;font-family:'IBM Plex Mono',monospace;color:var(--red);font-size:14px;text-align:center;}
+  .divider{height:1px;background:var(--border);margin:18px 0;}
+  .anb{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:16px 18px;margin:10px 0;}
+  .albl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--accent4);margin-bottom:8px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0;}
+  .card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .card h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:14px;margin-bottom:8px;}
+  /* PITFALL CARD */
+  .pit{background:var(--card2);border:1px solid rgba(239,68,68,.3);border-top:3px solid var(--red);border-radius:10px;padding:16px;margin:14px 0;}
+  .pit-num{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--red);margin-bottom:6px;}
+  .pit h4{font-family:'Syne',sans-serif;font-weight:700;color:#fff;font-size:14px;margin-bottom:10px;}
+  .wrong{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:10px 13px;margin-bottom:8px;}
+  .wrong .lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--red);letter-spacing:2px;margin-bottom:4px;}
+  .right{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:10px 13px;}
+  .right .lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent4);letter-spacing:2px;margin-bottom:4px;}
+  /* FREQ table */
+  .freq{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;margin-left:6px;vertical-align:middle;}
+  .freq.hi{color:#ef4444;border-color:#ef444455;background:rgba(239,68,68,.1);}
+  .freq.mid{color:var(--accent5);border-color:#f59e0b55;background:rgba(245,158,11,.1);}
+  .freq.low{color:var(--accent4);border-color:#10b98155;background:rgba(16,185,129,.1);}
+  /* QUICK REF */
+  .qr{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0;display:flex;gap:12px;align-items:flex-start;}
+  .qr-q{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent3);min-width:70px;padding-top:2px;}
+  .qr-a{font-size:13px;color:var(--muted);}
+  .qr-a strong{color:var(--text);}
+  /* Cheatsheet grid */
+  .cs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0;}
+  .cs-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .cs-card h4{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;}
+  .cs-card.r h4{color:var(--red);}
+  .cs-card.b h4{color:var(--accent);}
+  .cs-card.g h4{color:var(--accent4);}
+  .cs-card.p h4{color:var(--accent3);}
+  .cs-card.y h4{color:var(--accent5);}
+  .cs-card.o h4{color:var(--accent2);}
+  /* Progress checklist */
+  .check-item{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+  .check-item:last-child{border-bottom:none;}
+  .chk{width:20px;height:20px;border:2px solid var(--accent3);border-radius:4px;flex-shrink:0;margin-top:2px;}
+  @media(max-width:600px){.two,.three,.cs-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbadge">EXAM SURVIVAL KIT</div>
+  <h1>All Pitfalls · Revision<br><span>Question Pattern Analysis</span></h1>
+  <p>// Exam Pattern Analysis · 3 Midterms · Assignment · 25+ Pitfalls · Cheat Sheet · Last-Minute Revision</p>
+</header>
+<nav>
+  <a href="#pattern">Exam Patterns</a>
+  <a href="#pitfalls">All Pitfalls</a>
+  <a href="#peas">PEAS Pitfalls</a>
+  <a href="#search">Search Pitfalls</a>
+  <a href="#heuristic">Heuristic Pitfalls</a>
+  <a href="#sa">SA Pitfalls</a>
+  <a href="#minimax">Minimax Pitfalls</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+  <a href="#formulas">All Formulas</a>
+  <a href="#lastminute">Last Minute</a>
+  <a href="#checklist">Checklist</a>
+</nav>
+<main>
+
+<!-- ═══ EXAM PATTERN ANALYSIS ═══ -->
+<section class="sec" id="pattern">
+  <div class="sec-hd" style="border-left:4px solid var(--red)">
+    <div class="ico" style="background:rgba(239,68,68,.1)">📊</div>
+    <h2>Exam Pattern Analysis — What ALWAYS Appears</h2>
+  </div>
+  <div class="bdy">
+    <p>Based on analysis of <strong>3 midterms (Spring 2025, Summer 2025, Fall 2025)</strong> and <strong>Assignment 1</strong>, here is exactly what gets tested every time:</p>
+
+    <h3>Question Frequency Map</h3>
+    <table>
+      <tr><th>Topic</th><th>Frequency</th><th>Marks</th><th>Question Type</th></tr>
+      <tr><td><strong>PEAS Description</strong> <span class="freq hi">ALL 4 EXAMS</span></td><td>Every single exam</td><td>2–4 marks</td><td>Write P, E, A, S for a given agent (robot, rover, taxi, drone)</td></tr>
+      <tr><td><strong>Problem Formulation (Search)</strong> <span class="freq hi">ALL 4 EXAMS</span></td><td>Every single exam</td><td>3–5 marks</td><td>State, start state, actions, successor function, goal test, path cost</td></tr>
+      <tr><td><strong>BFS / DFS / UCS trace</strong> <span class="freq hi">ALL EXAMS</span></td><td>Every exam</td><td>2–4 marks</td><td>Trace on given graph, find solution path and cost</td></tr>
+      <tr><td><strong>A* Search</strong> <span class="freq hi">3/3 MIDTERMS</span></td><td>Every midterm</td><td>4–6 marks</td><td>A* Tree + A* Graph, show f=g+h at each node</td></tr>
+      <tr><td><strong>Heuristic Admissibility</strong> <span class="freq hi">ALL 3 MIDTERMS</span></td><td>Every midterm</td><td>3–5 marks</td><td>Check if h(n) ≤ h*(n), fix violations, check consistency</td></tr>
+      <tr><td><strong>Simulated Annealing</strong> <span class="freq hi">ALL EXAMS</span></td><td>Every exam</td><td>4–7 marks</td><td>Calculate accept/reject for given T, ΔE, RNG values step by step</td></tr>
+      <tr><td><strong>Minimax + Alpha-Beta</strong> <span class="freq hi">ALL EXAMS</span></td><td>Every exam</td><td>4–6 marks</td><td>Apply minimax, show which nodes pruned, state α-β values</td></tr>
+      <tr><td><strong>Heuristic Combinations</strong> <span class="freq mid">2/3 MIDTERMS</span></td><td>Common</td><td>2 marks</td><td>Is h5=max(h1,h4) admissible? Is min(h1,h4) admissible?</td></tr>
+      <tr><td><strong>HC / Beam / SA Concepts</strong> <span class="freq mid">2/3 MIDTERMS</span></td><td>Common</td><td>2 marks</td><td>Short conceptual questions about sideways moves, local maxima</td></tr>
+      <tr><td><strong>DFS/BFS/UCS on strings</strong> <span class="freq low">1 MIDTERM</span></td><td>Spring 2025</td><td>6 marks</td><td>Password recovery, which string DFS/BFS/UCS returns first</td></tr>
+    </table>
+
+    <h3>Marks Distribution Pattern</h3>
+    <div class="three">
+      <div class="card" style="border-top:3px solid var(--red);text-align:center">
+        <h4 style="font-size:28px;color:var(--red)">~35%</h4>
+        <p style="font-size:13px">PEAS + Problem Formulation (always first question)</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent);text-align:center">
+        <h4 style="font-size:28px;color:var(--accent)">~30%</h4>
+        <p style="font-size:13px">Search Algorithms (BFS/DFS/UCS/A* traces)</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent3);text-align:center">
+        <h4 style="font-size:28px;color:var(--accent3)">~35%</h4>
+        <p style="font-size:13px">Local Search (SA calculations) + Minimax/Alpha-Beta</p>
+      </div>
+    </div>
+
+    <h3>Assignment Topics That Came Back in Midterm</h3>
+    <div class="box g"><p><strong>The time machine problem</strong> (Assignment Q3) appeared in Spring 2025 midterm Q1 VERBATIM. The assignment BFS/DFS/UCS graph (Q6) appeared in Fall 2025 midterm Q2. Study the assignment solutions — they ARE the midterm.</p></div>
+  </div>
+</section>
+
+<!-- ═══ ALL PITFALLS ═══ -->
+<section class="sec" id="pitfalls">
+  <div class="sec-hd" style="border-left:4px solid var(--red)">
+    <div class="ico" style="background:rgba(239,68,68,.1)">⚠️</div>
+    <h2>Master Pitfall List — 25 Exam Traps Explained</h2>
+  </div>
+  <div class="bdy">
+    <div class="box"><p>These are the <strong>most common mistakes</strong> students make. Each one has been seen in actual exam answers. Read carefully — these are where marks are lost.</p></div>
+
+    <!-- PEAS PITFALLS -->
+    <h3>PEAS Pitfalls</h3>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #1 · PEAS</div>
+      <h4>Confusing "Environment" with "Task" — Giving Abstract Answers</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">Environment: "The place where the robot works"</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0"><strong>Environment</strong> = specific physical/digital world the agent operates in. For hospital robot: "Corridors, patient rooms, pharmacy, intersections, other hospital staff, blocked paths, battery levels." Be specific and concrete.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #2 · PEAS</div>
+      <h4>Forgetting Performance is a MEASURE — Not just "doing a good job"</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">Performance: "The robot should work well and deliver medicine"</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0">Performance: "<strong>+10 for each medicine delivered on time, -5 for wrong room, -1 per battery unit used, -50 for collision</strong>". Performance = a measurable score or objective function that tells us how good the agent is doing.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #3 · PEAS</div>
+      <h4>Mixing Up Sensors and Actuators</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">Sensors: Wheels. Actuators: Camera.</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0"><strong>Sensors = INPUT devices</strong> (camera, microphone, GPS, temperature sensor — things that SENSE). <strong>Actuators = OUTPUT devices</strong> (wheels, motors, robotic arm, display, speaker — things that ACT). Always ask: does this device gather info (sensor) or cause physical change (actuator)?</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SEARCH PITFALLS ═══ -->
+<section class="sec" id="search">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">🔍</div>
+    <h2>Search Algorithm Pitfalls</h2>
+  </div>
+  <div class="bdy">
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #4 · SEARCH</div>
+      <h4>BFS is NOT Always Optimal</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG BELIEF</div><p style="color:var(--muted);margin:0">"BFS always finds the cheapest path, so I'll use it for weighted graphs."</p></div>
+      <div class="right"><div class="lbl">✅ TRUTH</div><p style="color:var(--muted);margin:0">BFS finds the path with the <strong>fewest edges/hops</strong>, NOT the cheapest cost. In the assignment graph (S→A:1, S→C:10, A→B:5, B→C:2, C→G:1), BFS returns S→C→G (cost 11, fewest hops=2) but UCS returns S→A→B→C→G (cost 9, more hops but cheaper). <strong>BFS is only optimal when all edge costs are equal.</strong></p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #5 · SEARCH</div>
+      <h4>DFS Can Return Non-Optimal Paths (But May Coincidentally Find Optimal)</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">"DFS returned the cheapest path so it's optimal."</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0">DFS is <strong>not guaranteed to be optimal</strong>. In the assignment graph, DFS happens to return S→A→B→C→G (cost=9, which is optimal), but this is coincidental. DFS doesn't check costs — it just goes deep first. In a different graph, DFS could easily find a longer, more expensive path.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #6 · SEARCH</div>
+      <h4>UCS and Dijkstra — They're the Same Thing</h4>
+      <div class="box b"><p>UCS (Uniform Cost Search) is essentially Dijkstra's algorithm. Both expand nodes in order of cumulative cost g(n). Both are complete and optimal when edge costs > 0. In exams, always use a priority queue, always pop the minimum cost node, and always skip already-visited nodes (graph search).</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #7 · SEARCH</div>
+      <h4>Forgetting Tie-Breaking in BFS/DFS/UCS</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">Ignoring the tie-breaking rule stated in the question.</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0">Exam questions almost always say "break ties alphabetically" or "Up>Down>Right>Left". This completely changes which node is visited first and which path is returned. <strong>Always read and apply the tie-breaking rule FIRST</strong> before tracing. In BFS: among equal-priority nodes, sort alphabetically. In UCS: among equal-cost nodes, sort alphabetically.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #8 · SEARCH</div>
+      <h4>Graph Search vs Tree Search — Handling Visited Nodes</h4>
+      <div class="two">
+        <div class="card" style="border-top:3px solid var(--accent)">
+          <h4>Tree Search</h4>
+          <p style="font-size:13px;color:var(--muted)">Never marks nodes as visited. Can visit the same node multiple times via different paths. More memory. Used for A* Tree Search (needed when h is only admissible, not consistent).</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent5)">
+          <h4>Graph Search</h4>
+          <p style="font-size:13px;color:var(--muted)">Maintains a "closed" set of visited nodes. Never re-expands them. More efficient. Required when the question says "graph search". Used for BFS/DFS/UCS typically.</p>
+        </div>
+      </div>
+      <div class="box"><p>When a question says "if a node is not expanded twice" = they mean graph search. When they ask you to "show the tree" = they want tree search. Most exam questions specify — read carefully.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #9 · SEARCH</div>
+      <h4>DFS/BFS on STRING/PASSWORD Problems — What Each Returns</h4>
+      <div class="cb">
+<span class="cm">// Spring 2025 Q2: Strings of X,Y,Z. Cost X=1, Y=2, Z=3.</span>
+<span class="cm">// Correct passwords: XXXZZZ, XYYZZ, YXYXY, YZXYXZY, ZYXZ, ZYXZY</span>
+
+DFS → goes DEEPEST first via ALPHABETICAL path (X before Y before Z)
+     → goes X→XX→XXX→...→XXXXXXX→...backtrack→...→XXXZZZ ✅
+     → Returns: <span class="g">XXXZZZ</span> (deepest alphabetically-first path that matches)
+
+BFS → explores ALL strings of length 1, then length 2, then length 3...
+     → finds SHORTEST matching string → ZYXZ (length 4)
+     → Returns: <span class="g">ZYXZ</span> (shallowest = shortest password)
+
+UCS → expands by CUMULATIVE COST (X=1, Y=2, Z=3)
+     → finds CHEAPEST matching string first
+     → YXYXY: 2+1+2+1+2 = 8 ← cheapest
+     → Returns: <span class="g">YXYXY</span> (minimum total cost)
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #10 · SEARCH</div>
+      <h4>Misidentifying "Complete" vs "Optimal" Properties</h4>
+      <table>
+        <tr><th>Algorithm</th><th>Complete?</th><th>Optimal?</th><th>Common Mistake</th></tr>
+        <tr><td>BFS</td><td><strong>Yes</strong> (finite b)</td><td><strong>Yes</strong> (only equal costs)</td><td>Saying BFS is always optimal</td></tr>
+        <tr><td>DFS</td><td><strong>No</strong> (infinite spaces)</td><td><strong>No</strong></td><td>Saying DFS is complete</td></tr>
+        <tr><td>UCS</td><td><strong>Yes</strong></td><td><strong>Yes</strong></td><td>Confusing with BFS</td></tr>
+        <tr><td>DLS</td><td><strong>No</strong> (if L &lt; depth)</td><td><strong>No</strong></td><td>Saying DLS is complete</td></tr>
+        <tr><td>IDS</td><td><strong>Yes</strong></td><td><strong>Yes</strong> (equal costs)</td><td>Not knowing IDS exists</td></tr>
+        <tr><td>Greedy</td><td><strong>No</strong></td><td><strong>No</strong></td><td>Confusing with A*</td></tr>
+        <tr><td>A* (admissible h)</td><td><strong>Yes</strong></td><td><strong>Yes</strong> (tree search)</td><td>Not checking admissibility</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HEURISTIC PITFALLS ═══ -->
+<section class="sec" id="heuristic">
+  <div class="sec-hd" style="border-left:4px solid var(--accent3)">
+    <div class="ico" style="background:rgba(124,58,237,.1)">🎯</div>
+    <h2>Heuristic & A* Pitfalls</h2>
+  </div>
+  <div class="bdy">
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #11 · HEURISTIC</div>
+      <h4>Admissible ≠ Consistent — Critical Distinction!</h4>
+      <div class="box p">
+        <p><strong>Admissible:</strong> h(n) ≤ h*(n) for all n. Never overestimates. Required for A* Tree Search to be optimal.</p>
+        <p style="margin-top:6px"><strong>Consistent (Monotone):</strong> h(n) ≤ c(n,n') + h(n') for all edges n→n'. Required for A* Graph Search to be optimal.</p>
+        <p style="margin-top:6px"><strong>Relationship:</strong> Consistent → Admissible. But Admissible does NOT imply Consistent.</p>
+      </div>
+      <div class="box r"><p>In the A* graph (S,A,B,C,D,G) from the assignment: h(S)=6. c(S→C)=2, h(C)=3. Check: 6 ≤ 2+3=5? <strong>NO! 6 &gt; 5 → Inconsistent!</strong> So A* Graph Search is NOT guaranteed optimal here. A* Tree Search IS optimal (h is admissible).</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #12 · HEURISTIC</div>
+      <h4>How to Check Admissibility — The Correct Method</h4>
+      <div class="anb">
+        <div class="albl">▶ CORRECT PROCEDURE</div>
+        <ol style="color:var(--muted);padding-left:20px;">
+          <li>For each node n, find the <strong>actual shortest path cost</strong> from n to goal (h*(n)). Use UCS or just trace all paths.</li>
+          <li>Compare h(n) with h*(n). If <strong>h(n) &gt; h*(n) for ANY node</strong> → NOT admissible.</li>
+          <li>If you need to fix it: set h(n) = h*(n) or any value ≤ h*(n).</li>
+        </ol>
+        <div class="box g"><p><strong>Common values to check from exam graphs:</strong> h(goal) must be 0. If h(goal) ≠ 0, immediately NOT admissible. Also check nodes adjacent to goal — they must have h ≤ edge cost to goal.</p></div>
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #13 · HEURISTIC</div>
+      <h4>Heuristic Combinations — Which Are Admissible?</h4>
+      <table>
+        <tr><th>Formula</th><th>Admissible?</th><th>Why (memorise this)</th></tr>
+        <tr><td><code>max(h1, h2, h3)</code> — all admissible</td><td><strong style="color:#10b981">✅ YES</strong></td><td>max of admissible ≤ true cost (since each hi ≤ h*)</td></tr>
+        <tr><td><code>min(h1, h2, h4)</code> — h4 inadmissible</td><td><strong style="color:#10b981">✅ YES</strong></td><td>min ≤ each individual value → ≤ admissible ones → ≤ h*</td></tr>
+        <tr><td><code>max(h1, h2, h3, h4)</code> — h4 inadmissible</td><td><strong style="color:#ef4444">❌ NO</strong></td><td>h4 can exceed h*, max might take h4's value</td></tr>
+        <tr><td><code>h1² + h2 + h3</code></td><td><strong style="color:#ef4444">❌ NO</strong></td><td>Squaring makes h1² &gt; h* even if h1 ≤ h*</td></tr>
+        <tr><td><code>average(h1,h2,h3)</code></td><td><strong style="color:#10b981">✅ YES</strong></td><td>avg of values each ≤ h* is also ≤ h*</td></tr>
+        <tr><td><code>average(h1,h2,h4)</code> — h4 inadmissible</td><td><strong style="color:#ef4444">❌ NO</strong></td><td>h4 can be huge, pulls average above h*</td></tr>
+        <tr><td><code>h1 + h2 + h3 + h4</code></td><td><strong style="color:#ef4444">❌ NO</strong></td><td>Sum can easily exceed h* (h4 blows it up)</td></tr>
+        <tr><td><code>max(min(h1,h3), h4)</code></td><td><strong style="color:#ef4444">❌ NO</strong></td><td>h4 can be &gt; h*, and max might pick it</td></tr>
+      </table>
+      <div class="tip"><span>💡</span><p><strong>Rule of thumb:</strong> If h4 (inadmissible) appears in a MAX or SUM operation → likely NOT admissible. If h4 appears ONLY in a MIN operation with admissible heuristics → still admissible (min filters it out).</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #14 · HEURISTIC</div>
+      <h4>A* Tree Search vs A* Graph Search — Different Results Possible!</h4>
+      <div class="anb">
+        <div class="albl">▶ KEY SCENARIO WHERE THEY DIFFER</div>
+        <p>When h is admissible but NOT consistent, A* Graph Search may close a node via a suboptimal path, then find a better path to the same node — but ignore it because the node is already closed. This gives a non-optimal result.</p>
+        <div class="cb">
+<span class="cm">// Example from assignment/midterm:</span>
+<span class="cm">// h(S)=6, but c(S→C)=2, h(C)=3 → inconsistent: 6 > 5</span>
+
+A* TREE Search:
+  Opens: S(f=6), C(f=5), D(f=5), A(f=6), B(f=4)...
+  Finds optimal path: S→A→B→G, cost=6 ✅
+
+A* GRAPH Search:
+  Closes S, then C (g=2), then D...
+  Never re-opens C even if better path S→A→C (g=4) found.
+  But g=4>g=2 anyway here, so result is same here.
+  In general though: NOT guaranteed optimal with inconsistent h!
+        </div>
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #15 · HEURISTIC</div>
+      <h4>Summer 2025 Tricky Heuristic: h5 and h6 Admissibility</h4>
+      <div class="cb">
+<span class="cm">// Summer 2025 Q3c: Given h1,h2,h3 admissible, h4 inadmissible:</span>
+
+h5(n) = max(h1(n), h4(n)) + max(h2(n), h4(n)) − 2×h4(n) + h3(n)
+
+<span class="cm">// Simplify:</span>
+<span class="cm">// Case 1: h4 ≥ h1 AND h4 ≥ h2:</span>
+h5 = h4 + h4 - 2h4 + h3 = h3(n) → admissible! (h3 is admissible)
+
+<span class="cm">// Case 2: h1 ≥ h4 AND h4 ≥ h2:</span>
+h5 = h1 + h4 - 2h4 + h3 = h1 - h4 + h3
+   = h1 + h3 - h4 ≤ h1 + h3 ≤ h* + h* (if h*≥0, this could be >h*)
+   Wait: h1 ≤ h* and h3 ≤ h*. So h1-h4+h3 ≤ h1+h3.
+   But also h1-h4+h3 ≤ h1+h3 and h4≥0, so ≤ h1+h3.
+   
+<span class="cm">// Actually the key insight:</span>
+max(h1,h4) + max(h2,h4) - 2h4
+= max(h1-h4, 0) + max(h2-h4, 0)  (after simplification)
+≤ h1 + h2  (since max(h1-h4,0) ≤ max(h1,0) = h1)
+Adding h3: total ≤ h1+h2+h3, but all ≤ h* → NOT guaranteed admissible!
+
+<span class="cm">// h6(n) = avg(h2,h3,h4) - h4/3 - 2h2/3</span>
+<span class="cm">// = (h2+h3+h4)/3 - h4/3 - 2h2/3</span>
+<span class="cm">// = h2/3 + h3/3 + h4/3 - h4/3 - 2h2/3</span>
+<span class="cm">// = -h2/3 + h3/3</span>
+<span class="cm">// = (h3 - h2)/3</span>
+<span class="cm">// This can be negative! h(n) ≥ 0 required. Problematic.</span>
+<span class="cm">// Also if h2 &gt; h3, negative value → 0 ≤ h(n) ≤ h* not guaranteed.</span>
+      </div>
+      <div class="box g"><p><strong>The systematic approach:</strong> Algebraically simplify the formula. If the simplified form involves only admissible heuristics with non-negative coefficients summing ≤ 1, it's admissible. If the formula can go negative, or if inadmissible h4 appears with a positive weight where it could dominate → NOT admissible.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SA PITFALLS ═══ -->
+<section class="sec" id="sa">
+  <div class="sec-hd" style="border-left:4px solid var(--accent2)">
+    <div class="ico" style="background:rgba(255,107,53,.1)">🔥</div>
+    <h2>Simulated Annealing Pitfalls</h2>
+  </div>
+  <div class="bdy">
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #16 · SA</div>
+      <h4>Wrong Sign for ΔE — Maximisation vs Minimisation!</h4>
+      <div class="box"><p><strong>ΔE is ALWAYS: E(neighbour) − E(current)</strong></p></div>
+      <table>
+        <tr><th>Problem Type</th><th>ΔE &gt; 0 means</th><th>ΔE &lt; 0 means</th><th>Bad-move probability</th></tr>
+        <tr><td><strong>Maximisation</strong></td><td>Better (higher = good)</td><td>Worse → "second chance"</td><td><strong>e<sup>ΔE/T</sup></strong> (ΔE is negative here)</td></tr>
+        <tr><td><strong>Minimisation</strong></td><td>Worse (higher = bad)</td><td>Better → always accept</td><td><strong>e<sup>−ΔE/T</sup></strong> (ΔE is positive here)</td></tr>
+      </table>
+      <div class="tip"><span>⚠️</span><p><strong>Watch out in exams:</strong> The question says "maximisation problem" (like Starlink Q4, Spring 2025) OR "minimisation" (like the Fall 2024 problem). These give DIFFERENT probability formulas. Using the wrong formula will give completely wrong answers.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #17 · SA</div>
+      <h4>Accept/Reject Decision — Which Way Does the Inequality Go?</h4>
+      <div class="anb">
+        <div class="albl">▶ THE EXACT RULE</div>
+        <div class="cb">
+Compute probability: P = e^(ΔE/T)  [for maximisation]
+Generate random number: RNG (given in problem)
+
+If RNG < P → <span class="g">ACCEPT</span> the bad move (move there)
+If RNG ≥ P → <span class="r">REJECT</span> the bad move (stay at current)
+
+<span class="cm">// Common mistake: students write "RNG > P → accept". WRONG!</span>
+<span class="cm">// Lower RNG means "luckier" → easier to accept bad moves.</span>
+<span class="cm">// P is the THRESHOLD. RNG must be BELOW P to accept.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #18 · SA</div>
+      <h4>Good Moves Are ALWAYS Accepted — No Probability Check Needed!</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">"ΔE=+3 (good move, maximisation). P = e^(3/T) = e^0.3 = 1.35. Since RNG=0.5 &lt; 1.35 → accepted." ← Using probability formula for a GOOD move!</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0">ΔE=+3 (good move, maximisation) → <strong>ALWAYS accept immediately.</strong> No probability calculation needed. No RNG comparison needed. Just move there and continue to next timestep.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #19 · SA</div>
+      <h4>Temperature Formulas — Calculate CAREFULLY</h4>
+      <div class="cb">
+<span class="cm">// Spring 2025: T = 100 - 0.2t</span>
+t=0: T = 100 - 0 = 100 ✅
+t=1: T = 100 - 0.2 = 99.8 ✅
+t=4: T = 100 - 0.8 = 99.2 ✅
+
+<span class="cm">// Fall 2025: T = t - 2t² + 67</span>
+t=0: T = 0 - 0 + 67 = 67 ✅
+t=1: T = 1 - 2(1) + 67 = 66 ✅
+t=2: T = 2 - 2(4) + 67 = 2-8+67 = 61 ✅
+t=3: T = 3 - 2(9) + 67 = 3-18+67 = 52 ✅
+
+<span class="cm">// Summer 2025: T = 8 - 2t</span>
+t=0: T = 8. t=1: T=6. t=2: T=4. t=3: T=2. t=4: T=0! STOP here.
+<span class="cm">// T=0 means no more bad moves accepted (pure hill climbing).</span>
+
+<span class="cm">// RNG formulas:</span>
+<span class="cm">// N = |sin(90 - 4t)| degrees</span>
+t=0: N = |sin(90°)| = 1.0
+t=1: N = |sin(86°)| ≈ 0.9976
+t=4: N = |sin(74°)| ≈ 0.9613
+
+<span class="cm">// N = |cos(185 + 2.7t)| degrees</span>
+t=0: N = |cos(185°)| = |cos(180+5)| = cos(5°) ≈ 0.9962
+t=1: N = |cos(187.7°)| = cos(7.7°) ≈ 0.9910
+      </div>
+      <div class="tip"><span>💡</span><p><strong>Exam speed tip:</strong> Always compute T(t) and N(t) in a table before starting calculations. Then do ΔE, P, compare for each timestep. Don't skip steps — each step is worth marks.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #20 · SA</div>
+      <h4>SA "Once Accepted, No Second Check"</h4>
+      <div class="box g"><p>Once SA accepts a neighbour (whether good or bad), you move there unconditionally. For the NEXT timestep, compute everything fresh from the NEW current state. Don't re-check whether you should have moved.</p></div>
+      <div class="box r"><p><strong>But note:</strong> After accepting a bad move (moving to worse state), the NEXT timestep still starts from the new (worse) state. The algorithm doesn't backtrack. This is by design — the bad move might have opened up a path to the global optimum!</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MINIMAX PITFALLS ═══ -->
+<section class="sec" id="minimax">
+  <div class="sec-hd" style="border-left:4px solid var(--accent5)">
+    <div class="ico" style="background:rgba(245,158,11,.1)">♟️</div>
+    <h2>Minimax & Alpha-Beta Pitfalls</h2>
+  </div>
+  <div class="bdy">
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #21 · MINIMAX</div>
+      <h4>Right-to-Left Traversal Changes Pruning Order!</h4>
+      <div class="wrong"><div class="lbl">❌ WRONG</div><p style="color:var(--muted);margin:0">"I'll just apply alpha-beta left-to-right regardless of what the question says."</p></div>
+      <div class="right"><div class="lbl">✅ RIGHT</div><p style="color:var(--muted);margin:0">If the question says "right-to-left": evaluate the RIGHTMOST child first at every node. This sets α and β from right children first, and potentially prunes LEFT siblings. The final root value is the same, but <strong>different subtrees get pruned.</strong></p></div>
+      <div class="anb">
+        <div class="albl">▶ EXAMPLE IMPACT</div>
+        <div class="cb">
+<span class="cm">// Left-to-right: evaluate left children first, prune right</span>
+<span class="cm">// Right-to-left: evaluate right children first, prune left</span>
+<span class="cm">// Same minimax root value, different set of pruned nodes!</span>
+
+<span class="cm">// For "find ranges of a,b,c,d" questions (Summer 2025):</span>
+<span class="cm">// The unknown variables are leaves that SHOULD be pruned.</span>
+<span class="cm">// Find what value of 'a' causes α≥β at the moment 'a' would be evaluated.</span>
+<span class="cm">// That gives you the range constraint.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #22 · MINIMAX</div>
+      <h4>α and β Values — What They Mean and How They're Passed</h4>
+      <table>
+        <tr><th>When</th><th>Who Updates</th><th>Formula</th><th>Pruning Check</th></tr>
+        <tr><td>At MAX node, after child returns v</td><td>MAX updates α</td><td>α = max(α, v)</td><td>If α ≥ β → prune remaining children</td></tr>
+        <tr><td>At MIN node, after child returns v</td><td>MIN updates β</td><td>β = min(β, v)</td><td>If α ≥ β → prune remaining children</td></tr>
+        <tr><td>Going TO a child</td><td>Parent passes</td><td>Child inherits parent's current (α, β)</td><td>—</td></tr>
+        <tr><td>Returning FROM a child</td><td>Parent receives v</td><td>Updates own α or β</td><td>Checks pruning</td></tr>
+      </table>
+      <div class="box y"><p><strong>α starts at −∞ and can only INCREASE.</strong> β starts at +∞ and can only DECREASE. When they "cross" (α ≥ β), we're done with this subtree.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #23 · MINIMAX</div>
+      <h4>Minimax Value ≠ Minimax Move</h4>
+      <div class="anb">
+        <div class="albl">▶ THE DISTINCTION</div>
+        <p>The <strong>minimax value</strong> is the guaranteed utility MAX can achieve (a number). The <strong>minimax move</strong> is the action MAX should take (which child to go to).</p>
+        <p style="margin-top:6px">At the root, the <strong>move</strong> = go to the child whose minimax value equals the root's minimax value. If two children tie, pick left (or per tie-breaking rule).</p>
+        <div class="box g"><p><strong>Example:</strong> Root MAX value = 6. Left child (MIN-L) = 6. Right child (MIN-R) = 2. Minimax MOVE = go LEFT. Don't say "the answer is 6" — say "the optimal move is to go to MIN-L (left child), which guarantees utility 6".</p></div>
+      </div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #24 · MINIMAX</div>
+      <h4>Nodes Are Pruned — NOT "Not Evaluated" by the Algorithm</h4>
+      <div class="box r"><p>Pruned nodes are never evaluated (we save computation). But the key phrase in exam answers is: "this node is PRUNED because the pruning condition α ≥ β was met BEFORE reaching this node." You must state: (1) which node is pruned, (2) what α and β values caused it, (3) why this is a pruning condition.</p></div>
+    </div>
+
+    <div class="pit">
+      <div class="pit-num">PITFALL #25 · MINIMAX</div>
+      <h4>Minimax Always Optimal? — The Nuanced Answer</h4>
+      <div class="two">
+        <div class="card" style="border-top:3px solid #10b981">
+          <h4>✅ Optimal against RATIONAL opponent</h4>
+          <p style="font-size:13px;color:var(--muted)">If opponent plays perfectly (chooses minimum), minimax gives MAX the best guaranteed outcome.</p>
+        </div>
+        <div class="card" style="border-top:3px solid #ef4444">
+          <h4>❌ NOT optimal against irrational opponent</h4>
+          <p style="font-size:13px;color:var(--muted)">If opponent makes mistakes, a different strategy exploiting those mistakes could achieve higher utility than what minimax "pessimistically" guarantees.</p>
+        </div>
+      </div>
+      <div class="box r"><p>Also NOT optimal when using <strong>depth-limited search + evaluation functions</strong> (approximate, not exact utility). This is the practical case in chess programs — they're not "optimal" in the theoretical sense.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MASTER CHEAT SHEET ═══ -->
+<section class="sec" id="cheatsheet">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">📌</div>
+    <h2>Master Cheat Sheet — Everything on One Page</h2>
+  </div>
+  <div class="bdy">
+
+    <h3 class="g">PEAS Template</h3>
+    <div class="cs-grid">
+      <div class="cs-card g"><h4>Performance</h4><p style="font-size:13px;color:var(--muted)">What score does the agent maximise? Include: success criteria, efficiency (speed/cost), safety penalties, specific measurable outcomes.</p></div>
+      <div class="cs-card b"><h4>Environment</h4><p style="font-size:13px;color:var(--muted)">Physical/digital world. Be specific: type of space, obstacles, other agents, dynamic elements, constraints (battery, time).</p></div>
+      <div class="cs-card o"><h4>Actuators</h4><p style="font-size:13px;color:var(--muted)">Output devices: wheels/motors (move), robotic arm (manipulate), display/speaker (communicate), antenna (transmit).</p></div>
+      <div class="cs-card p"><h4>Sensors</h4><p style="font-size:13px;color:var(--muted)">Input devices: camera (visual), microphone (audio), GPS (location), battery sensor, temperature sensor, obstacle detector.</p></div>
+    </div>
+
+    <h3 class="b">Problem Formulation Template</h3>
+    <div class="cs-grid">
+      <div class="cs-card b"><h4>State Space</h4><p style="font-size:13px;color:var(--muted)">All possible world configurations. Must capture everything needed to determine what happens next. Often a tuple: (location, items_remaining, battery).</p></div>
+      <div class="cs-card b"><h4>Start State</h4><p style="font-size:13px;color:var(--muted)">Initial configuration. Must be a specific state, not vague. Example: (pharmacy, all_medicines_undelivered, full_battery).</p></div>
+      <div class="cs-card b"><h4>Actions/Successor</h4><p style="font-size:13px;color:var(--muted)">What moves are possible + what they produce. Successor function: state × action → new_state. List all valid actions from any state.</p></div>
+      <div class="cs-card b"><h4>Goal Test + Cost</h4><p style="font-size:13px;color:var(--muted)">Goal test: condition that defines success. Path cost: how to measure total cost of a solution path (moves, time, battery).</p></div>
+    </div>
+
+    <h3 class="y">Search Algorithm Quick Reference</h3>
+    <table>
+      <tr><th>Algorithm</th><th>Data Structure</th><th>Order</th><th>Optimal</th><th>Complete</th><th>Use When</th></tr>
+      <tr><td><strong>BFS</strong></td><td>Queue (FIFO)</td><td>Shallowest first</td><td>Yes (equal costs)</td><td>Yes</td><td>Fewest hops, unknown cost</td></tr>
+      <tr><td><strong>DFS</strong></td><td>Stack (LIFO)</td><td>Deepest first</td><td>No</td><td>No (inf)</td><td>Memory limited, any solution</td></tr>
+      <tr><td><strong>UCS</strong></td><td>Priority Queue</td><td>Cheapest g(n)</td><td>Yes</td><td>Yes</td><td>Cheapest path, weighted graph</td></tr>
+      <tr><td><strong>A*</strong></td><td>Priority Queue</td><td>Smallest f=g+h</td><td>Yes (admiss h)</td><td>Yes</td><td>Cheapest + guided by heuristic</td></tr>
+      <tr><td><strong>Greedy</strong></td><td>Priority Queue</td><td>Smallest h(n)</td><td>No</td><td>No</td><td>Fast but suboptimal OK</td></tr>
+    </table>
+
+    <h3 class="o">A* f=g+h Quick Calculator</h3>
+    <div class="cb">
+<span class="cm">// For each node n in the open list:</span>
+g(n) = actual cost from start to n (sum of edge weights along path)
+h(n) = heuristic estimate from n to goal (GIVEN in problem)
+f(n) = g(n) + h(n)
+
+<span class="cm">// Always expand the node with SMALLEST f(n) first</span>
+<span class="cm">// Break ties: smaller g first (or alphabetically)</span>
+
+<span class="cm">// Example from exam graph:</span>
+g(S)=0, h(S)=6 → f(S)=6
+g(A)=2, h(A)=4 → f(A)=6  ← tie!
+g(C)=2, h(C)=3 → f(C)=5  ← expand first! (lower f)
+g(D)=4, h(D)=1 → f(D)=5  ← tie with C
+    </div>
+
+    <h3 class="p">Simulated Annealing Quick Procedure</h3>
+    <div class="cb">
+For each timestep t:
+  1. T = temperature_formula(t)      ← compute T
+  2. N = |RNG_formula(t)|            ← compute random number
+  3. Get selected neighbour (given)
+  4. ΔE = E(neighbour) - E(current)
+  
+  5. If ΔE > 0 (good move, maximisation):
+        → <span class="g">ALWAYS ACCEPT</span>. Move. Done for this timestep.
+     
+  6. If ΔE < 0 (bad move):
+        → P = e^(ΔE/T)               ← probability of accepting bad move
+        → If N < P: <span class="g">ACCEPT</span> (move to neighbour)
+        → If N ≥ P: <span class="r">REJECT</span> (stay at current)
+    </div>
+
+    <h3>Alpha-Beta Quick Procedure</h3>
+    <div class="cb">
+Start: ALPHA-BETA(root, α=-∞, β=+∞)
+
+At each MAX node:
+  For each child c (in given order):
+    v = ALPHA-BETA(c, α, β)
+    α = max(α, v)
+    if α ≥ β: PRUNE! Break.
+  return v
+
+At each MIN node:
+  For each child c (in given order):
+    v = ALPHA-BETA(c, α, β)
+    β = min(β, v)
+    if α ≥ β: PRUNE! Break.
+  return v
+
+At leaf: return the given utility value.
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ALL FORMULAS ═══ -->
+<section class="sec" id="formulas">
+  <div class="sec-hd" style="border-left:4px solid var(--accent)">
+    <div class="ico" style="background:rgba(0,212,255,.1)">📐</div>
+    <h2>All Formulas — Complete Reference</h2>
+  </div>
+  <div class="bdy">
+    <div class="formula">A* cost function: &nbsp; f(n) = g(n) + h(n)</div>
+    <div class="formula">Admissibility: &nbsp; h(n) ≤ h*(n) &nbsp; for all nodes n</div>
+    <div class="formula">Consistency: &nbsp; h(n) ≤ c(n, n') + h(n') &nbsp; for all edges n→n'</div>
+    <div class="formula">SA bad move probability (MAXIMISATION): &nbsp; P = e^(ΔE/T) &nbsp; where ΔE = E(neighbor) - E(current)</div>
+    <div class="formula">SA bad move probability (MINIMISATION): &nbsp; P = e^(-ΔE/T) &nbsp; where ΔE = E(neighbor) - E(current)</div>
+    <div class="formula">Accept bad move if: &nbsp; RNG &lt; P &nbsp; &nbsp; |&nbsp;&nbsp; Reject if: &nbsp; RNG ≥ P</div>
+    <div class="formula">Alpha-Beta prune condition: &nbsp; α ≥ β</div>
+    <div class="formula">Minimax MAX: &nbsp; max over all child values</div>
+    <div class="formula">Minimax MIN: &nbsp; min over all child values</div>
+    <div class="formula">BFS time/space: &nbsp; O(b^s) &nbsp; |&nbsp; DFS time: O(b^m), space: O(bm) &nbsp; |&nbsp; UCS: O(b^(C*/ε))</div>
+    <div class="formula">A* best case pruning: &nbsp; O(b^(m/2)) &nbsp; — halves the effective depth</div>
+  </div>
+</section>
+
+<!-- ═══ LAST MINUTE 10-POINT PLAN ═══ -->
+<section class="sec" id="lastminute">
+  <div class="sec-hd" style="border-left:4px solid var(--hi)">
+    <div class="ico" style="background:rgba(254,240,138,.1)">⚡</div>
+    <h2>Last-Minute 10-Point Exam Plan</h2>
+  </div>
+  <div class="bdy">
+    <div class="box y"><p><strong>Read this 30 minutes before the exam.</strong></p></div>
+
+    <table>
+      <tr><th>#</th><th>Point</th><th>What to Do</th></tr>
+      <tr><td><strong>1</strong></td><td>PEAS comes first</td><td>Always start with P-E-A-S. Write all 4 components. Be specific. 2-4 sentences each. Never skip components.</td></tr>
+      <tr><td><strong>2</strong></td><td>Problem formulation has 5 parts</td><td>State, Start State, Actions, Successor Function, Goal Test, Path Cost. Write all 5-6 every time. Never miss "path cost".</td></tr>
+      <tr><td><strong>3</strong></td><td>Check tie-breaking before tracing</td><td>Read the tie-breaking rule first. For BFS/DFS: alphabetical. For grid: Up>Down>Right>Left. Apply consistently throughout.</td></tr>
+      <tr><td><strong>4</strong></td><td>UCS uses priority queue by g(n)</td><td>Always maintain a PQ. Pop minimum cost. Mark visited. Show each pop/push step explicitly.</td></tr>
+      <tr><td><strong>5</strong></td><td>A* needs f=g+h at every node</td><td>Calculate and write f(n)=g(n)+h(n) for EVERY node you add to the open list. Show the calculation.</td></tr>
+      <tr><td><strong>6</strong></td><td>Check admissibility FIRST in heuristic questions</td><td>For each node: compute actual shortest path to goal. If h(n) &gt; actual → not admissible. Fix by setting h(n) = actual cost.</td></tr>
+      <tr><td><strong>7</strong></td><td>SA: tabulate T, N, ΔE, P, decision</td><td>Make a table: timestep | T | N (RNG) | Neighbor | ΔE | P | Accept?. Fill each row. Don't skip steps.</td></tr>
+      <tr><td><strong>8</strong></td><td>Minimax: work bottom-up, label every node</td><td>Write the computed value next to every internal node. Show the max/min operation. Never leave internal nodes unlabeled.</td></tr>
+      <tr><td><strong>9</strong></td><td>Alpha-beta: write [α, β, v] at each node</td><td>Track α and β throughout. When you prune, explicitly state: "Pruned because α(X) ≥ β(Y)".</td></tr>
+      <tr><td><strong>10</strong></td><td>State IS/IS NOT optimal and WHY</td><td>For A* graph search: check consistency. If inconsistent → not guaranteed optimal. For Minimax: "optimal against rational opponent".</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ SELF-TEST CHECKLIST ═══ -->
+<section class="sec" id="checklist">
+  <div class="sec-hd" style="border-left:4px solid var(--accent4)">
+    <div class="ico" style="background:rgba(16,185,129,.1)">✅</div>
+    <h2>Self-Test Checklist — Can You Answer These?</h2>
+  </div>
+  <div class="bdy">
+    <p>If you can answer all of these confidently, you will ace the exam.</p>
+
+    <h3 class="g">PEAS & Formulation</h3>
+    <div class="check-item"><div class="chk"></div><div>Write PEAS for a hospital delivery robot, lunar rover, and coffee machine robot without looking at notes.</div></div>
+    <div class="check-item"><div class="chk"></div><div>Formulate the 8-queens problem as a search problem (state, actions, goal test).</div></div>
+    <div class="check-item"><div class="chk"></div><div>Formulate the time machine problem (state = (year, jumps_used)).</div></div>
+
+    <h3 class="b">Search Algorithms</h3>
+    <div class="check-item"><div class="chk"></div><div>Trace BFS, DFS, UCS on the assignment graph (S-A:1, A-B:5, B-C:2, C-G:1, S-C:10, B-G:5, C-G:1) and give all 3 paths and costs.</div></div>
+    <div class="check-item"><div class="chk"></div><div>Explain why BFS returned S→C→G (cost 11) but UCS returned S→A→B→C→G (cost 9) — isn't S→C→G cheaper?</div></div>
+    <div class="check-item"><div class="chk"></div><div>State the complete/optimal/time/space properties for BFS, DFS, DLS, UCS, A*, Greedy.</div></div>
+
+    <h3 class="p">Informed Search & Heuristics</h3>
+    <div class="check-item"><div class="chk"></div><div>Run A* Tree Search on the exam graph (S,A,B,C,D,G) and show the f=g+h values at each expansion step.</div></div>
+    <div class="check-item"><div class="chk"></div><div>Check if h(S)=6 is consistent with c(S→C)=2 and h(C)=3. What does this mean for A* Graph Search?</div></div>
+    <div class="check-item"><div class="chk"></div><div>Is max(h1,h2,h4) admissible if h4 is inadmissible? What about min(h1,h2,h4)?</div></div>
+
+    <h3 class="y">Local Search & SA</h3>
+    <div class="check-item"><div class="chk"></div><div>Calculate SA for Spring 2025 (T=100-0.2t, N=|sin(90-4t)|) at t=0 through t=5 without a calculator error.</div></div>
+    <div class="check-item"><div class="chk"></div><div>What is the difference between local beam search and random restart? What happens when k=1 in beam search?</div></div>
+    <div class="check-item"><div class="chk"></div><div>State the three problems of hill climbing and how sideways moves, random restart, and SA each solve them.</div></div>
+
+    <h3>Adversarial Search</h3>
+    <div class="check-item"><div class="chk"></div><div>Run minimax on the lecture tree (leaves: 4,6,7,9,1,2,0,1) and get root = 6.</div></div>
+    <div class="check-item"><div class="chk"></div><div>Apply alpha-beta to the same tree. Identify that leaf 9 is pruned (β-cutoff at MAX-B: α=7≥β=6) and MAX-D(0,1) are pruned (α-cutoff at MIN-R: α=6≥β=2).</div></div>
+    <div class="check-item"><div class="chk"></div><div>Explain in one sentence why minimax is NOT always optimal.</div></div>
+    <div class="check-item"><div class="chk"></div><div>For right-to-left traversal: which children are evaluated first? Which get pruned?</div></div>
+  </div>
+</section>
+
+</main>
+<div style="text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:20px;">
+  CSE 3811 · Artificial Intelligence · UIU · Pitfalls & Revision Guide · Exam Pattern Analysis
+</div>
+</body>
+</html>
